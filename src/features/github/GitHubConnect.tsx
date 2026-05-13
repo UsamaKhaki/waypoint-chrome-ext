@@ -73,7 +73,7 @@ export function GitHubConnect() {
         <button
           onClick={() =>
             chrome.tabs.create({
-              url: 'https://github.com/settings/tokens/new?scopes=repo,notifications,read:user&description=DevFlow+Workspace',
+              url: 'https://github.com/settings/tokens/new?scopes=repo,notifications,read:user&description=Waypoint',
             })
           }
           className="flex items-center gap-1 text-xs text-accent hover:underline mt-1"

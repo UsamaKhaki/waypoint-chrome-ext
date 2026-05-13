@@ -6,7 +6,9 @@ import {
   type GitHubPR,
   type GitHubIssue,
   type GitHubNotification,
+  type RepoCiStatus,
 } from '@/services/githubApi';
+import { useGitHubStore } from './github.store';
 
 interface GitHubAuthState {
   token: string | null;
@@ -15,6 +17,7 @@ interface GitHubAuthState {
   assignedIssues: GitHubIssue[];
   reviewRequests: GitHubPR[];
   notifications: GitHubNotification[];
+  ciStatus: RepoCiStatus[];
   isConnected: boolean;
   isLoading: boolean;
   isInitializing: boolean; // true until loadToken() has finished its storage check
@@ -32,13 +35,14 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
   assignedIssues: [],
   reviewRequests: [],
   notifications: [],
+  ciStatus: [],
   isConnected: false,
   isLoading: false,
   isInitializing: true,
   error: null,
 
   loadToken: async () => {
-    const token = await storage.get<string>('githubToken' as any);
+    const token = await storage.get<string>('githubToken');
     if (token) {
       set({ token, isConnected: true, isInitializing: false });
       get()
@@ -54,7 +58,7 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
     try {
       const api = new GitHubApiService(token);
       const user = await api.getUser();
-      await storage.set('githubToken' as any, token);
+      await storage.set('githubToken', token);
       set({ token, user, isConnected: true, isLoading: false });
       get()
         .refresh()
@@ -68,7 +72,7 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
   },
 
   disconnect: async () => {
-    await storage.remove('githubToken' as any);
+    await storage.remove('githubToken');
     set({
       token: null,
       user: null,
@@ -76,6 +80,7 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
       assignedIssues: [],
       reviewRequests: [],
       notifications: [],
+      ciStatus: [],
       isConnected: false,
       error: null,
     });
@@ -87,14 +92,25 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const api = new GitHubApiService(token);
-      const [user, myPRs, assignedIssues, reviewRequests, notifications] = await Promise.all([
-        api.getUser(),
-        api.getMyOpenPRs(),
-        api.getAssignedIssues(),
-        api.getReviewRequests(),
-        api.getNotifications(),
-      ]);
-      set({ user, myPRs, assignedIssues, reviewRequests, notifications, isLoading: false });
+      const repos = useGitHubStore.getState().repos;
+      const [user, myPRs, assignedIssues, reviewRequests, notifications, ciStatus] =
+        await Promise.all([
+          api.getUser(),
+          api.getMyOpenPRs(),
+          api.getAssignedIssues(),
+          api.getReviewRequests(),
+          api.getNotifications(),
+          api.getAllRepoCiStatus(repos.map((r) => ({ fullName: r.fullName, url: r.url }))),
+        ]);
+      set({
+        user,
+        myPRs,
+        assignedIssues,
+        reviewRequests,
+        notifications,
+        ciStatus,
+        isLoading: false,
+      });
     } catch {
       set({ error: 'Failed to fetch GitHub data. Check your connection.', isLoading: false });
     }

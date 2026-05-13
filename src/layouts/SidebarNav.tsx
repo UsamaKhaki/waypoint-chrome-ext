@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bookmark,
@@ -9,8 +9,10 @@ import {
   Settings,
   LayoutDashboard,
   Clock,
-  ChevronLeft,
-  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Code2,
+  FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWorkspaceStore } from '@/store/workspace.store';
@@ -24,7 +26,9 @@ const NAV_ITEMS = [
   { id: 'github', label: 'GitHub', icon: GitBranch, shortcut: '4' },
   { id: 'focus', label: 'Focus', icon: Target, shortcut: '5' },
   { id: 'tabs', label: 'Tabs', icon: Layers, shortcut: '6' },
-  { id: 'settings', label: 'Settings', icon: Settings, shortcut: '7' },
+  { id: 'snippets', label: 'Snippets', icon: Code2, shortcut: '7' },
+  { id: 'sessions', label: 'Sessions', icon: FolderOpen, shortcut: '8' },
+  { id: 'settings', label: 'Settings', icon: Settings, shortcut: '9' },
 ];
 
 interface SidebarNavProps {
@@ -126,14 +130,13 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
         isCollapsed ? 'items-center px-2' : 'px-2'
       )}
     >
-      {/* Logo + toggle */}
+      {/* Logo */}
       <div
         className={cn(
           'mb-6 flex items-center',
-          isCollapsed ? 'flex-col gap-2 w-full' : 'px-2 justify-between'
+          isCollapsed ? 'justify-center w-full' : 'px-2 justify-between'
         )}
       >
-        {/* Logo mark */}
         <button
           onClick={() => onSectionChange('overview')}
           className="h-7 w-7 rounded-lg bg-accent/20 flex items-center justify-center hover:bg-accent/30 transition-colors flex-shrink-0"
@@ -142,33 +145,15 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
           <span className="text-accent text-sm font-bold">D</span>
         </button>
 
-        {/* Label — hidden when collapsed */}
         {!isCollapsed && (
-          <span className="font-semibold text-primary text-sm flex-1 ml-2">DevFlow</span>
+          <span className="font-semibold text-primary text-sm flex-1 ml-2">Waypoint</span>
         )}
 
-        {/* Mode badge — only expanded */}
         {!isCollapsed && currentMode !== 'default' && (
           <Badge variant="default" className="text-xs capitalize">
             {currentMode.replace(/-/g, ' ')}
           </Badge>
         )}
-
-        {/* Toggle button */}
-        <button
-          onClick={toggle}
-          className={cn(
-            'flex-shrink-0 p-1 rounded-lg text-muted hover:text-primary hover:bg-surface-elevated transition-all',
-            isCollapsed && 'mt-1'
-          )}
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronLeft className="h-3.5 w-3.5" />
-          )}
-        </button>
       </div>
 
       {/* Nav items */}
@@ -204,6 +189,25 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
             {!isCollapsed && <ClockDisplay />}
           </div>
         )}
+
+        {/* Collapse / expand toggle — always at bottom */}
+        <button
+          onClick={toggle}
+          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={cn(
+            'w-full flex items-center gap-2 py-2 rounded-lg text-muted hover:text-primary hover:bg-surface-elevated transition-all',
+            isCollapsed ? 'justify-center px-0' : 'px-3'
+          )}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="h-4 w-4 flex-shrink-0" />
+          ) : (
+            <>
+              <PanelLeftClose className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs">Collapse</span>
+            </>
+          )}
+        </button>
       </div>
     </nav>
   );

@@ -209,4 +209,10 @@ export type StorageKey =
   | 'prTemplates'
   | 'branchTemplates'
   | 'onboardingCompleted'
-  | 'overviewLayout';
+  | 'overviewLayout'
+  | 'snippets'
+  | 'subscription'
+  | 'sessions'
+  | 'pendingSnippet'
+  | 'notificationsEnabled'
+  | 'githubToken';

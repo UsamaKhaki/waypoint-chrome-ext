@@ -2,7 +2,6 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-// Chrome extensions block crossorigin module fetches — strip the attribute from built HTML
 function removeCrossOrigin(): Plugin {
   return {
     name: 'remove-crossorigin',
@@ -16,12 +15,30 @@ export default defineConfig({
   plugins: [react(), removeCrossOrigin()],
   base: '',
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: { '@': path.resolve(__dirname, './src') },
   },
   build: {
     outDir: 'dist',
-    modulePreload: { polyfill: false }, // polyfill uses fetch+CORS which breaks in extension context
+    modulePreload: { polyfill: false },
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      input: {
+        index: path.resolve(__dirname, 'index.html'),
+        palette: path.resolve(__dirname, 'palette.html'),
+        background: path.resolve(__dirname, 'src/background.ts'),
+        content: path.resolve(__dirname, 'src/content.ts'),
+      },
+      output: {
+        entryFileNames: (chunk) => {
+          if (['background', 'content'].includes(chunk.name)) return '[name].js';
+          return 'assets/[name]-[hash].js';
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        manualChunks: (id) => {
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('lucide-react') || id.includes('@dnd-kit')) return 'vendor-ui';
+        },
+      },
+    },
   },
 });

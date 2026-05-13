@@ -11,12 +11,14 @@ import {
   Clock,
   MessageSquare,
   Pencil,
+  GitBranch,
 } from 'lucide-react';
 import { useGitHubAuthStore } from '@/store/githubAuth.store';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import type { GitHubPR, GitHubIssue, GitHubNotification } from '@/services/githubApi';
+import { CicdStatus } from './CicdStatus';
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -171,7 +173,7 @@ function EmptyState({ icon: Icon, text }: { icon: React.ElementType; text: strin
   );
 }
 
-type Tab = 'prs' | 'issues' | 'reviews' | 'notifications';
+type Tab = 'prs' | 'issues' | 'reviews' | 'notifications' | 'cicd';
 
 export function GitHubDashboard() {
   const {
@@ -180,6 +182,7 @@ export function GitHubDashboard() {
     assignedIssues,
     reviewRequests,
     notifications,
+    ciStatus,
     isLoading,
     error,
     refresh,
@@ -205,6 +208,14 @@ export function GitHubDashboard() {
       label: 'Inbox',
       icon: Bell,
       count: notifications.filter((n) => n.unread).length,
+    },
+    {
+      id: 'cicd',
+      label: 'CI/CD',
+      icon: GitBranch,
+      count: ciStatus.filter(
+        (s) => s.latestRun?.conclusion === 'failure' || s.latestRun?.status === 'in_progress'
+      ).length,
     },
   ];
 
@@ -254,7 +265,7 @@ export function GitHubDashboard() {
       </div>
 
       {/* Stats strip */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -314,6 +325,8 @@ export function GitHubDashboard() {
               ) : (
                 reviewRequests.map((pr) => <PRCard key={pr.id} pr={pr} />)
               )
+            ) : activeTab === 'cicd' ? (
+              <CicdStatus />
             ) : notifications.length === 0 ? (
               <EmptyState icon={Bell} text="Inbox is empty" />
             ) : (

@@ -102,4 +102,57 @@ export class GitHubApiService {
   async getNotifications(): Promise<GitHubNotification[]> {
     return this.fetch<GitHubNotification[]>('/notifications?per_page=10');
   }
+
+  async getRepoWorkflowRuns(repoFullName: string): Promise<WorkflowRun[]> {
+    try {
+      const data = await this.fetch<{ workflow_runs: WorkflowRun[] }>(
+        `/repos/${repoFullName}/actions/runs?per_page=5`
+      );
+      return data.workflow_runs;
+    } catch {
+      return [];
+    }
+  }
+
+  async getAllRepoCiStatus(repos: { fullName: string; url: string }[]): Promise<RepoCiStatus[]> {
+    const results = await Promise.all(
+      repos.map(async (repo) => {
+        const runs = await this.getRepoWorkflowRuns(repo.fullName);
+        return {
+          repoFullName: repo.fullName,
+          repoUrl: repo.url,
+          latestRun: runs[0] ?? null,
+        };
+      })
+    );
+    return results;
+  }
+}
+
+export interface WorkflowRun {
+  id: number;
+  name: string;
+  status: 'queued' | 'in_progress' | 'completed';
+  conclusion:
+    | 'success'
+    | 'failure'
+    | 'cancelled'
+    | 'skipped'
+    | 'timed_out'
+    | 'action_required'
+    | null;
+  html_url: string;
+  created_at: string;
+  updated_at: string;
+  head_branch: string;
+  head_sha: string;
+  run_number: number;
+  repository: { full_name: string; html_url: string };
+  actor: { login: string; avatar_url: string };
+}
+
+export interface RepoCiStatus {
+  repoFullName: string;
+  repoUrl: string;
+  latestRun: WorkflowRun | null;
 }

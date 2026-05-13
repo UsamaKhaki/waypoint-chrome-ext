@@ -23,6 +23,8 @@ import { cn } from '@/lib/utils';
 import { QuickApps } from './QuickApps';
 import { OverviewEditor } from './OverviewEditor';
 import { OpenPRs } from './OpenPRs';
+import { CicdOverview } from './CicdOverview';
+import { IntegrationsWidget } from './IntegrationsWidget';
 
 const SECTION_CARDS = [
   {
@@ -310,6 +312,32 @@ function LeftSection({
         </motion.div>
       );
 
+    case 'cicd':
+      return (
+        <motion.div
+          key="cicd"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <CicdOverview onNavigate={onNavigate} />
+        </motion.div>
+      );
+
+    case 'integrations':
+      return (
+        <motion.div
+          key="integrations"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <IntegrationsWidget />
+        </motion.div>
+      );
+
     case 'pinned': {
       const pinned = bookmarks.filter((b) => b.isPinned);
       if (pinned.length === 0) return null;
@@ -361,7 +389,7 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',

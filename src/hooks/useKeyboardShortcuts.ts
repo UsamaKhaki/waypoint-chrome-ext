@@ -12,7 +12,8 @@ const SECTION_MAP: Record<string, string> = {
   '4': 'github',
   '5': 'focus',
   '6': 'tabs',
-  '7': 'settings',
+  '7': 'snippets',
+  '8': 'settings',
 };
 
 const CHORD_MAP: Record<string, Record<string, string>> = {

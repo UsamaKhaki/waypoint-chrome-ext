@@ -1,7 +1,14 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
 
-export type OverviewSectionId = 'search' | 'quick-apps' | 'nav-cards' | 'github-prs' | 'pinned';
+export type OverviewSectionId =
+  | 'search'
+  | 'quick-apps'
+  | 'nav-cards'
+  | 'github-prs'
+  | 'pinned'
+  | 'cicd'
+  | 'integrations';
 
 export interface OverviewSectionConfig {
   id: OverviewSectionId;
@@ -15,6 +22,8 @@ const DEFAULT_LAYOUT: OverviewSectionConfig[] = [
   { id: 'nav-cards', label: 'Section Cards', visible: true },
   { id: 'github-prs', label: 'Open Pull Requests', visible: true },
   { id: 'pinned', label: 'Pinned Bookmarks', visible: true },
+  { id: 'cicd', label: 'CI/CD Status', visible: true },
+  { id: 'integrations', label: 'Linear & Jira', visible: true },
 ];
 
 interface OverviewLayoutState {

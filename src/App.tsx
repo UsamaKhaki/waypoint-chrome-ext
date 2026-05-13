@@ -21,9 +21,25 @@ import { useKeyboardShortcuts, useApplySettings } from '@/hooks';
 import { OnboardingFlow } from '@/features/onboarding';
 import { OverviewPanel } from '@/features/overview/OverviewPanel';
 import { SettingsPanel } from '@/features/settings';
+import { SnippetsPanel } from '@/features/snippets';
+import { useSnippetsStore } from '@/store/snippets.store';
+import { useSnippetCommands } from '@/features/snippets/useSnippetCommands';
+import { UpgradeModal } from '@/features/subscription';
+import { useSubscriptionStore } from '@/store/subscription.store';
+import { SessionsPanel } from '@/features/sessions';
+import { useSessionsStore } from '@/store/sessions.store';
 import { storage } from '@/services/storage';
 
-type Section = 'overview' | 'bookmarks' | 'environments' | 'github' | 'focus' | 'tabs' | 'settings';
+type Section =
+  | 'overview'
+  | 'bookmarks'
+  | 'environments'
+  | 'github'
+  | 'focus'
+  | 'tabs'
+  | 'snippets'
+  | 'sessions'
+  | 'settings';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('overview');
@@ -42,6 +58,11 @@ export default function App() {
   const loadTabs = useTabsStore((s) => s.load);
   const loadRecentCommands = useCommandPaletteStore((s) => s.loadRecentCommands);
   const loadGitHub = useGitHubStore((s) => s.load);
+  const loadSnippets = useSnippetsStore((s) => s.load);
+  const loadSubscription = useSubscriptionStore((s) => s.load);
+  const loadSessions = useSessionsStore((s) => s.load);
+
+  useSnippetCommands();
 
   useEffect(() => {
     Promise.all([
@@ -52,13 +73,16 @@ export default function App() {
       loadTabs(),
       loadRecentCommands(),
       loadGitHub(),
+      loadSnippets(),
+      loadSubscription(),
+      loadSessions(),
     ])
       .then(async () => {
         const onboardingCompleted = await storage.get<boolean>('onboardingCompleted');
         if (!onboardingCompleted) setShowOnboarding(true);
       })
       .finally(() => setIsBooting(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isBooting) {
     return (
@@ -82,6 +106,10 @@ export default function App() {
         return <DailyFocusWidget />;
       case 'tabs':
         return <TabsPanel />;
+      case 'snippets':
+        return <SnippetsPanel />;
+      case 'sessions':
+        return <SessionsPanel />;
       case 'settings':
         return <SettingsPanel />;
       default:
@@ -107,6 +135,7 @@ export default function App() {
       </MainLayout>
       <CommandPalette />
       {showOnboarding && <OnboardingFlow onComplete={() => setShowOnboarding(false)} />}
+      <UpgradeModal />
     </>
   );
 }

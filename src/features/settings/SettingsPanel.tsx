@@ -1,8 +1,12 @@
-import { useState, useRef } from 'react';
-import { Download, Upload, RotateCcw, Check, ExternalLink } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Download, Upload, RotateCcw, Check, ExternalLink, Cloud, Lock, Bell } from 'lucide-react';
 import { useSettingsStore } from '@/store/settings.store';
+import { useSubscriptionStore } from '@/store/subscription.store';
+import { PRO_FEATURES } from '@/constants/subscription';
 import { storage } from '@/services/storage';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
 
 const ACCENT_COLORS = [
@@ -17,10 +21,41 @@ const ACCENT_COLORS = [
 
 export function SettingsPanel() {
   const { settings, update, reset } = useSettingsStore();
+  const plan = useSubscriptionStore((s) => s.plan);
+  const openUpgradeModal = useSubscriptionStore((s) => s.openUpgradeModal);
+  const deactivate = useSubscriptionStore((s) => s.deactivate);
   const [exportDone, setExportDone] = useState(false);
   const [importError, setImportError] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
+  const [cloudSync, setCloudSync] = useState(false);
+  const [deactivateKey, setDeactivateKey] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [pollDone, setPollDone] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isPro = plan === 'pro' || plan === 'team';
+
+  useEffect(() => {
+    if (typeof chrome === 'undefined' || !chrome.storage) return;
+    chrome.storage.local.get('notificationsEnabled', (res) => {
+      setNotificationsEnabled(res.notificationsEnabled !== false);
+    });
+  }, []);
+
+  const toggleNotifications = (val: boolean) => {
+    setNotificationsEnabled(val);
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ notificationsEnabled: val });
+    }
+  };
+
+  const handlePollNow = () => {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'POLL_NOW' }, () => {
+        setPollDone(true);
+        setTimeout(() => setPollDone(false), 2000);
+      });
+    }
+  };
 
   const handleExport = async () => {
     const json = await storage.exportAll();
@@ -28,7 +63,7 @@ export function SettingsPanel() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `devflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `waypoint-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setExportDone(true);
@@ -44,7 +79,7 @@ export function SettingsPanel() {
       setImportError('');
       window.location.reload();
     } catch {
-      setImportError('Invalid file. Please use a DevFlow backup JSON.');
+      setImportError('Invalid file. Please use a Waypoint backup JSON.');
     }
   };
 
@@ -52,8 +87,137 @@ export function SettingsPanel() {
     <div className="space-y-8 max-w-2xl">
       <div>
         <h1 className="text-lg font-semibold text-primary">Settings</h1>
-        <p className="text-sm text-muted mt-0.5">Customize your DevFlow workspace</p>
+        <p className="text-sm text-muted mt-0.5">Customize your Waypoint workspace</p>
       </div>
+
+      {/* Subscription */}
+      <section className="card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-primary">Subscription</h2>
+          {plan === 'free' && <Badge variant="secondary">Free</Badge>}
+          {plan === 'pro' && <Badge variant="success">Pro</Badge>}
+          {plan === 'team' && <Badge variant="default">Team</Badge>}
+        </div>
+
+        {!isPro ? (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-secondary">Upgrade to Pro</p>
+              <p className="text-xs text-muted">Unlock unlimited snippets, cloud sync, and more</p>
+            </div>
+            <Button size="sm" onClick={() => openUpgradeModal()}>
+              Upgrade →
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-success" />
+              <span className="text-sm text-secondary">
+                {plan === 'team' ? 'Team plan active' : 'Pro plan active'}
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted">Deactivate license</p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Confirm deactivation"
+                  value={deactivateKey}
+                  onChange={(e) => setDeactivateKey(e.target.value)}
+                  className="text-xs"
+                />
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    deactivate();
+                    setDeactivateKey('');
+                  }}
+                  className="flex-shrink-0"
+                >
+                  Deactivate
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Notifications */}
+      <section className="card p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted" />
+            <h2 className="text-sm font-semibold text-primary">Notifications</h2>
+          </div>
+          {!isPro && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/15 text-accent">
+              <Lock className="h-2.5 w-2.5" /> Pro
+            </span>
+          )}
+        </div>
+
+        {!isPro ? (
+          <p className="text-xs text-muted">
+            Upgrade to Pro to enable GitHub PR and CI notifications.
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-secondary">PR review reminders</p>
+                <p className="text-xs text-muted">Notify when PRs are waiting for your review</p>
+              </div>
+              <button
+                onClick={() => toggleNotifications(!notificationsEnabled)}
+                className={cn(
+                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
+                  notificationsEnabled ? 'bg-accent' : 'bg-surface-elevated'
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200',
+                    notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                  )}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-secondary">CI failure alerts</p>
+                <p className="text-xs text-muted">
+                  Notify when a build fails on your tracked repos
+                </p>
+              </div>
+              <button
+                onClick={() => toggleNotifications(!notificationsEnabled)}
+                className={cn(
+                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
+                  notificationsEnabled ? 'bg-accent' : 'bg-surface-elevated'
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200',
+                    notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                  )}
+                />
+              </button>
+            </div>
+
+            <Button variant="outline" size="sm" onClick={handlePollNow} className="gap-2">
+              {pollDone ? (
+                <Check className="h-3.5 w-3.5 text-success" />
+              ) : (
+                <Bell className="h-3.5 w-3.5" />
+              )}
+              {pollDone ? 'Triggered!' : 'Test notification'}
+            </Button>
+          </>
+        )}
+      </section>
 
       {/* Profile */}
       <section className="card p-5 space-y-3">
@@ -211,6 +375,44 @@ export function SettingsPanel() {
           </button>
         </div>
 
+        {/* Cloud Sync */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-2">
+            <Cloud className="h-4 w-4 text-muted mt-0.5" />
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-secondary">Cloud Sync</p>
+                {!isPro && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/15 text-accent">
+                    <Lock className="h-2.5 w-2.5" /> Pro
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted">Sync your data across devices</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              if (!isPro) {
+                openUpgradeModal(PRO_FEATURES.CLOUD_SYNC);
+                return;
+              }
+              setCloudSync((v) => !v);
+            }}
+            className={cn(
+              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
+              isPro && cloudSync ? 'bg-accent' : 'bg-surface-elevated'
+            )}
+          >
+            <span
+              className={cn(
+                'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200',
+                isPro && cloudSync ? 'translate-x-6' : 'translate-x-1'
+              )}
+            />
+          </button>
+        </div>
+
         {/* Chrome Appearance */}
         <div className="flex items-center justify-between pt-1 border-t border-border-subtle">
           <div>
@@ -295,7 +497,7 @@ export function SettingsPanel() {
       <section className="card p-5">
         <h2 className="text-sm font-semibold text-primary mb-3">About</h2>
         <div className="space-y-1 text-xs text-muted">
-          <p>DevFlow Workspace v1.0.0</p>
+          <p>Waypoint v1.0.0</p>
           <p>A developer productivity command center for Chrome.</p>
           <p className="mt-2">
             Built with React, TypeScript, Vite, TailwindCSS, Zustand, and Framer Motion.
