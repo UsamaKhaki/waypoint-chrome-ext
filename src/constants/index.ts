@@ -226,8 +226,8 @@ export const BACKGROUND_PRESETS: Record<
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   userName: '',
-  accentColor: '#6366f1',
-  backgroundColor: '#070a13',
+  accentColor: '#238636',
+  backgroundColor: '#0d1117',
   backgroundPreset: 'midnight',
   fontSize: 'md',
   compactMode: false,

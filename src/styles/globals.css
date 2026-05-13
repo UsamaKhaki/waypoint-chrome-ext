@@ -4,19 +4,20 @@
 
 @layer base {
   :root {
-    --background: 222 47% 5%;
-    --surface: 222 47% 8%;
-    --surface-elevated: 222 47% 11%;
-    --border: 222 47% 16%;
-    --border-subtle: 222 47% 13%;
-    --text-primary: 210 40% 96%;
-    --text-secondary: 215 20% 65%;
-    --text-muted: 215 15% 45%;
-    --accent: 245 82% 67%;
-    --accent-hover: 245 82% 72%;
-    --accent-subtle: 245 82% 67% / 0.12;
+    /* ── Slate Pro — GitHub-inspired dark palette ── */
+    --background: 215 28% 7%; /* #0d1117 */
+    --surface: 214 21% 11%; /* #161b22 */
+    --surface-elevated: 214 15% 15%; /* #21262d */
+    --border: 214 12% 21%; /* #30363d */
+    --border-subtle: 214 12% 18%; /* between surface-elevated & border */
+    --text-primary: 205 35% 90%; /* #e6edf3 */
+    --text-secondary: 213 10% 59%; /* #8b949e */
+    --text-muted: 213 8% 46%; /* #6e7681 */
+    --accent: 132 59% 33%; /* #238636 GitHub green */
+    --accent-hover: 132 59% 38%;
+    --accent-subtle: 132 59% 33% / 0.15;
     --destructive: 0 72% 51%;
-    --success: 160 60% 45%;
+    --success: 132 59% 33%;
     --warning: 38 92% 50%;
     --local: 192 91% 42%;
     --stage: 25 95% 53%;
@@ -42,7 +43,7 @@
     /* No background-color here — Chrome injects theme color on body.
        We read it via JS and apply it to --background, then #root picks it up. */
     color: hsl(var(--text-primary));
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

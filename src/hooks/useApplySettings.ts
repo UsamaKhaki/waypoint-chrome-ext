@@ -166,13 +166,13 @@ const FONT_SIZE_MAP = { sm: '13px', md: '15px', lg: '17px' } as const;
 
 export function useApplySettings() {
   const accentColor = useSettingsStore((s) => s.settings.accentColor);
-  const backgroundColor = useSettingsStore((s) => s.settings.backgroundColor ?? '#070a13');
+  const backgroundColor = useSettingsStore((s) => s.settings.backgroundColor ?? '#0d1117');
   const fontSize = useSettingsStore((s) => s.settings.fontSize);
   const compactMode = useSettingsStore((s) => s.settings.compactMode);
 
   // Apply user-chosen background color
   useEffect(() => {
-    const rgb = parseColor(backgroundColor) ?? parseColor('#070a13')!;
+    const rgb = parseColor(backgroundColor) ?? parseColor('#0d1117')!;
     applyBackground(rgb);
   }, [backgroundColor]);
 

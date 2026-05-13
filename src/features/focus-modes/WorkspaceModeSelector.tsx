@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, Check, ChevronDown } from 'lucide-react';
 import { useWorkspaceStore } from '@/store/workspace.store';
@@ -21,14 +22,33 @@ const MODE_EMOJIS: Record<WorkspaceMode, string> = {
 export function WorkspaceModeSelector() {
   const { currentMode, setMode } = useWorkspaceStore();
   const [isOpen, setIsOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Calculate dropdown position from button
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 6,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [isOpen]);
 
   // Close on outside click
   useEffect(() => {
+    if (!isOpen) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+      if (
+        buttonRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      )
+        return;
+      setIsOpen(false);
     };
-    if (isOpen) document.addEventListener('mousedown', handler);
+    document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [isOpen]);
 
@@ -38,8 +58,9 @@ export function WorkspaceModeSelector() {
   };
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen((o) => !o)}
         className={cn(
           'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-150',
@@ -56,48 +77,53 @@ export function WorkspaceModeSelector() {
         />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.97 }}
-            transition={{ duration: 0.12, ease: 'easeOut' }}
-            className="absolute right-0 top-full mt-1.5 z-50 w-72 glass-elevated rounded-2xl shadow-2xl overflow-hidden"
-          >
-            <div className="p-1.5">
-              <p className="px-3 py-1.5 text-xs text-muted font-semibold uppercase tracking-wider">
-                Workspace Mode
-              </p>
-              {(Object.keys(WORKSPACE_CONFIGS) as WorkspaceMode[]).map((mode) => {
-                const config = WORKSPACE_CONFIGS[mode];
-                const isActive = mode === currentMode;
-                return (
-                  <button
-                    key={mode}
-                    onClick={() => handleSelect(mode)}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-100',
-                      isActive
-                        ? 'bg-accent/10 text-primary'
-                        : 'text-secondary hover:bg-surface-elevated hover:text-primary'
-                    )}
-                  >
-                    <span className="text-base">{MODE_EMOJIS[mode]}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium capitalize">
-                        {mode.replace(/-/g, ' ')}
+      {createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              ref={dropdownRef}
+              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.12, ease: 'easeOut' }}
+              style={{ top: dropdownPos.top, right: dropdownPos.right }}
+              className="fixed z-[9998] w-72 glass-elevated rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="p-1.5 max-h-[70vh] overflow-y-auto">
+                <p className="px-3 py-1.5 text-xs text-muted font-semibold uppercase tracking-wider">
+                  Workspace Mode
+                </p>
+                {(Object.keys(WORKSPACE_CONFIGS) as WorkspaceMode[]).map((mode) => {
+                  const config = WORKSPACE_CONFIGS[mode];
+                  const isActive = mode === currentMode;
+                  return (
+                    <button
+                      key={mode}
+                      onClick={() => handleSelect(mode)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-100',
+                        isActive
+                          ? 'bg-accent/10 text-primary'
+                          : 'text-secondary hover:bg-surface-elevated hover:text-primary'
+                      )}
+                    >
+                      <span className="text-base">{MODE_EMOJIS[mode]}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium capitalize">
+                          {mode.replace(/-/g, ' ')}
+                        </div>
+                        <div className="text-xs text-muted truncate">{config.description}</div>
                       </div>
-                      <div className="text-xs text-muted truncate">{config.description}</div>
-                    </div>
-                    {isActive && <Check className="h-4 w-4 text-accent flex-shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                      {isActive && <Check className="h-4 w-4 text-accent flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </>
   );
 }
