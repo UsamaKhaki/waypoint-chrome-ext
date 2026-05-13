@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 5%;
+    --surface: 222 47% 8%;
+    --surface-elevated: 222 47% 11%;
+    --border: 222 47% 16%;
+    --border-subtle: 222 47% 13%;
+    --text-primary: 210 40% 96%;
+    --text-secondary: 215 20% 65%;
+    --text-muted: 215 15% 45%;
+    --accent: 245 82% 67%;
+    --accent-hover: 245 82% 72%;
+    --accent-subtle: 245 82% 67% / 0.12;
+    --destructive: 0 72% 51%;
+    --success: 160 60% 45%;
+    --warning: 38 92% 50%;
+    --local: 192 91% 42%;
+    --stage: 25 95% 53%;
+    --production: 0 72% 51%;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body {
+    /* No background-color here — Chrome injects theme color on body.
+       We read it via JS and apply it to --background, then #root picks it up. */
+    color: hsl(var(--text-primary));
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    /* App container uses our CSS variable so all derived colors work */
+    background-color: hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--text-muted));
+  }
+
+  ::selection {
+    background: hsl(var(--accent-subtle));
+    color: hsl(var(--text-primary));
+  }
+}
+
+@layer components {
+  .glass {
+    background: hsl(var(--surface) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border-subtle));
+  }
+
+  .glass-elevated {
+    background: hsl(var(--surface-elevated) / 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .card {
+    @apply rounded-2xl p-4 transition-all duration-200;
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border-subtle));
+  }
+
+  .card-hover {
+    @apply card cursor-pointer;
+  }
+  .card-hover:hover {
+    background: hsl(var(--surface-elevated));
+    border-color: hsl(var(--border));
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px hsl(0 0% 0% / 0.3);
+  }
+
+  .kbd {
+    @apply inline-flex items-center justify-center rounded px-1.5 py-0.5 text-xs font-mono;
+    background: hsl(var(--surface-elevated));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--text-secondary));
+    min-width: 1.5rem;
+  }
+
+  .section-title {
+    @apply text-xs font-semibold uppercase tracking-widest;
+    color: hsl(var(--text-muted));
+  }
+
+  .tag {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+    background: hsl(var(--accent-subtle));
+    color: hsl(var(--accent));
+  }
+}
+
+/* Compact mode — reduce padding/spacing globally when .compact is on <html> */
+.compact .card {
+  padding: 0.625rem !important;
+}
+.compact .card-hover {
+  padding: 0.5rem !important;
+}
+.compact main {
+  padding: 0.75rem !important;
+}
+.compact nav {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+.compact .space-y-6 {
+  row-gap: 0.75rem !important;
+}
+.compact .space-y-8 {
+  row-gap: 1rem !important;
+}
+.compact .space-y-4 {
+  row-gap: 0.5rem !important;
+}
+.compact .gap-6 {
+  gap: 0.75rem !important;
+}
+.compact .py-6 {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+.compact .mb-6 {
+  margin-bottom: 0.5rem !important;
+}
+.compact .mb-4 {
+  margin-bottom: 0.375rem !important;
+}
+.compact .py-2\.5 {
+  padding-top: 0.375rem !important;
+  padding-bottom: 0.375rem !important;
+}
+.compact .py-3 {
+  padding-top: 0.375rem !important;
+  padding-bottom: 0.375rem !important;
+}
+.compact .px-6 {
+  padding-left: 0.875rem !important;
+  padding-right: 0.875rem !important;
+}

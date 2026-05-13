@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "DevFlow Workspace",
+  "version": "1.0.0",
+  "description": "Developer productivity command center",
+  "permissions": ["storage", "tabs", "bookmarks", "tabGroups"],
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "action": {
+    "default_title": "DevFlow Workspace"
+  }
+}
