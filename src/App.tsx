@@ -28,6 +28,7 @@ import { UpgradeModal } from '@/features/subscription';
 import { useSubscriptionStore } from '@/store/subscription.store';
 import { SessionsPanel } from '@/features/sessions';
 import { useSessionsStore } from '@/store/sessions.store';
+import { useGoogleProfileStore } from '@/store/googleProfile.store';
 import { storage } from '@/services/storage';
 
 type Section =
@@ -61,6 +62,7 @@ export default function App() {
   const loadSnippets = useSnippetsStore((s) => s.load);
   const loadSubscription = useSubscriptionStore((s) => s.load);
   const loadSessions = useSessionsStore((s) => s.load);
+  const loadGoogleProfile = useGoogleProfileStore((s) => s.load);
 
   useSnippetCommands();
 
@@ -76,6 +78,7 @@ export default function App() {
       loadSnippets(),
       loadSubscription(),
       loadSessions(),
+      loadGoogleProfile(),
     ])
       .then(async () => {
         const onboardingCompleted = await storage.get<boolean>('onboardingCompleted');

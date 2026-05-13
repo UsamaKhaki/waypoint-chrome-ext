@@ -215,4 +215,6 @@ export type StorageKey =
   | 'sessions'
   | 'pendingSnippet'
   | 'notificationsEnabled'
-  | 'githubToken';
+  | 'githubToken'
+  | 'widgets'
+  | 'googleProfile';

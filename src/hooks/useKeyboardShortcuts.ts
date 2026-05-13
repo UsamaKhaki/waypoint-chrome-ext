@@ -13,7 +13,8 @@ const SECTION_MAP: Record<string, string> = {
   '5': 'focus',
   '6': 'tabs',
   '7': 'snippets',
-  '8': 'settings',
+  '8': 'sessions',
+  '9': 'settings',
 };
 
 const CHORD_MAP: Record<string, Record<string, string>> = {
@@ -72,8 +73,8 @@ export function useKeyboardShortcuts(onNavigate: SectionNavigator) {
         return;
       }
 
-      // CMD+1–9 → navigate sections
-      if ((e.metaKey || e.ctrlKey) && e.key >= '1' && e.key <= '9') {
+      // CMD+0–9 → navigate sections
+      if ((e.metaKey || e.ctrlKey) && e.key >= '0' && e.key <= '9') {
         e.preventDefault();
         const section = SECTION_MAP[e.key];
         if (section) onNavigate(section);

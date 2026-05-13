@@ -19,6 +19,9 @@ import { useCommandPaletteStore } from '@/store/commandPalette.store';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useOverviewLayoutStore, type OverviewSectionId } from '@/store/overviewLayout.store';
+import { useGitHubAuthStore } from '@/store/githubAuth.store';
+import { useGoogleProfileStore } from '@/store/googleProfile.store';
+import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/lib/utils';
 import { QuickApps } from './QuickApps';
 import { OverviewEditor } from './OverviewEditor';
@@ -385,7 +388,13 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
   const openPalette = useCommandPaletteStore((s) => s.open);
   const userName = useSettingsStore((s) => s.settings.userName);
   const { sections, load } = useOverviewLayoutStore();
+  const githubUser = useGitHubAuthStore((s) => s.user);
+  const googleProfile = useGoogleProfileStore((s) => s.profile);
   const [editing, setEditing] = useState(false);
+
+  // Avatar priority: Google photo > GitHub avatar > initials
+  const avatarSrc = googleProfile?.picture ?? githubUser?.avatar_url ?? null;
+  const displayName = googleProfile?.name ?? userName ?? githubUser?.name ?? '';
 
   useEffect(() => {
     load();
@@ -405,42 +414,44 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
       {/* ── Left: 9 cols ─────────────────────────────────────────────── */}
       <div className="col-span-9 space-y-6">
         {/* Greeting + edit button */}
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <motion.div
+            className="flex items-center gap-4"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
           >
-            <p className="text-xs text-muted mb-1">{today}</p>
-            <h1 className="text-2xl font-semibold text-primary">
-              Good {getGreeting()}
-              {userName ? `, ${userName}` : ''}
-            </h1>
-            <p className="text-sm text-muted mt-1">
-              {userName
-                ? `What are we building today, ${userName}?`
-                : 'Your developer command center is ready.'}
-            </p>
+            <Avatar
+              src={avatarSrc}
+              name={displayName || 'W'}
+              size="xl"
+              className="ring-2 ring-border-subtle flex-shrink-0"
+            />
+            <div>
+              <p className="text-xs text-muted mb-1">{today}</p>
+              <h1 className="text-2xl font-semibold text-primary">
+                Good {getGreeting()}
+                {displayName ? `, ${displayName}` : ''}
+              </h1>
+              <p className="text-sm text-muted mt-1">
+                {displayName
+                  ? `What are we building today, ${displayName.split(' ')[0]}?`
+                  : 'Your developer command center is ready.'}
+              </p>
+            </div>
           </motion.div>
 
           <button
-            onClick={() => setEditing((e) => !e)}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border mt-1 flex-shrink-0',
-              editing
-                ? 'bg-accent/10 border-accent/30 text-accent'
-                : 'border-border-subtle text-muted hover:text-secondary hover:border-border'
-            )}
+            onClick={() => setEditing(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border mt-1 flex-shrink-0 border-border-subtle text-muted hover:text-secondary hover:border-border"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            {editing ? 'Editing…' : 'Edit Layout'}
+            Edit Layout
           </button>
         </div>
 
-        {/* Inline layout editor */}
-        <AnimatePresence>
-          {editing && <OverviewEditor onClose={() => setEditing(false)} />}
-        </AnimatePresence>
+        {/* Modal editor — portal, only mounts when open */}
+        {editing && <OverviewEditor onClose={() => setEditing(false)} />}
 
         {/* Left sections in stored order */}
         <AnimatePresence mode="popLayout">
