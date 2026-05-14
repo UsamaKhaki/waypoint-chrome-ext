@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { SlackApiService, type SlackUser, type SlackChannel } from '@/services/slackApi';
+import { analytics } from '@/lib/analytics';
 import type { StorageKey } from '@/types';
 
 // Cast 'slackToken' to StorageKey — will be added to types by the types owner
@@ -57,6 +58,7 @@ export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
 
   connect: async (token: string) => {
     set({ isLoading: true, error: null });
+    analytics.integrationConnectStarted('slack');
     try {
       const api = new SlackApiService(token);
       const authTest = await api.getAuthTest();
@@ -69,19 +71,23 @@ export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
       const user = await api.getUser(authTest.user_id).catch(() => null);
       await storage.set(SLACK_TOKEN_KEY, token);
       set({ token, authInfo, user, isConnected: true, isLoading: false });
+      analytics.integrationConnectSuccess('slack');
       get()
         .refresh()
         .catch(() => {});
     } catch (err) {
+      const reason = err instanceof Error ? err.message : 'unknown';
       set({
         error: err instanceof Error ? err.message : 'Failed to connect to Slack.',
         isLoading: false,
       });
+      analytics.integrationConnectFailed('slack', reason);
     }
   },
 
   disconnect: async () => {
     await storage.remove(SLACK_TOKEN_KEY);
+    analytics.integrationDisconnected('slack');
     set({
       token: null,
       authInfo: null,

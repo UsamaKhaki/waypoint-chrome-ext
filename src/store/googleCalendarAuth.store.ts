@@ -5,6 +5,7 @@ import {
   type CalendarEvent,
   type CalendarList,
 } from '@/services/googleCalendarApi';
+import { analytics } from '@/lib/analytics';
 import type { StorageKey } from '@/types';
 
 function extractToken(result: chrome.identity.GetAuthTokenResult): string | undefined {
@@ -67,6 +68,7 @@ export const useGoogleCalendarAuthStore = create<GoogleCalendarAuthState>((set, 
       return;
     }
     set({ isLoading: true, error: null });
+    analytics.integrationConnectStarted('google_calendar');
     try {
       // MV3: scopes come from manifest oauth2.scopes — do not pass them here
       const token = await new Promise<string>((resolve, reject) => {
@@ -84,18 +86,22 @@ export const useGoogleCalendarAuthStore = create<GoogleCalendarAuthState>((set, 
       const userProfile = await api.getUserProfile();
       await storage.set(STORAGE_KEY, true);
       set({ isConnected: true, isLoading: false, userProfile });
+      analytics.integrationConnectSuccess('google_calendar');
       get()
         .refresh()
         .catch(() => {});
     } catch (err) {
+      const reason = err instanceof Error ? err.message : 'unknown';
       set({
         error: err instanceof Error ? err.message : 'Failed to connect to Google Calendar.',
         isLoading: false,
       });
+      analytics.integrationConnectFailed('google_calendar', reason);
     }
   },
 
   disconnect: async () => {
+    analytics.integrationDisconnected('google_calendar');
     const identity = getIdentityApi();
     if (identity) {
       const token = await new Promise<string | null>((resolve) => {

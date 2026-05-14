@@ -20,7 +20,10 @@
     "https://accounts.google.com/*",
     "https://api.github.com/*",
     "https://*.atlassian.net/*",
-    "https://api.linear.app/*"
+    "https://api.linear.app/*",
+    "https://*.ingest.sentry.io/*",
+    "https://*.i.posthog.com/*",
+    "https://us.posthog.com/*"
   ],
   "oauth2": {
     "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { NotionApiService, type NotionUser, type NotionPage } from '@/services/notionApi';
+import { analytics } from '@/lib/analytics';
 import type { StorageKey } from '@/types';
 
 // notionToken is not yet in the StorageKey union; cast to bypass the type check
@@ -47,26 +48,31 @@ export const useNotionAuthStore = create<NotionAuthState>((set, get) => ({
 
   connect: async (token: string) => {
     set({ isLoading: true, error: null });
+    analytics.integrationConnectStarted('notion');
     try {
       const api = new NotionApiService(token);
       const user = await api.getUser();
       await storage.set(NOTION_TOKEN_KEY, token);
       set({ token, user, isConnected: true, isLoading: false });
+      analytics.integrationConnectSuccess('notion');
       get()
         .refresh()
         .catch((err) => {
           set({ error: err instanceof Error ? err.message : 'Failed to load pages.' });
         });
     } catch (err) {
+      const reason = err instanceof Error ? err.message : 'unknown';
       set({
         error: err instanceof Error ? err.message : 'Invalid token. Make sure you copied the full Internal Integration Token.',
         isLoading: false,
       });
+      analytics.integrationConnectFailed('notion', reason);
     }
   },
 
   disconnect: async () => {
     await storage.remove(NOTION_TOKEN_KEY);
+    analytics.integrationDisconnected('notion');
     set({
       token: null,
       user: null,

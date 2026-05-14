@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
+import { analytics } from '@/lib/analytics';
 import {
   LinearApiService,
   type LinearUser,
@@ -53,24 +54,29 @@ export const useLinearAuthStore = create<LinearAuthState>((set, get) => ({
 
   connect: async (apiKey: string) => {
     set({ isLoading: true, error: null });
+    analytics.integrationConnectStarted('linear');
     try {
       const api = new LinearApiService(apiKey);
       const user = await api.getViewer();
       await storage.set('linearApiKey', apiKey);
       set({ apiKey, user, isConnected: true, isLoading: false });
+      analytics.integrationConnectSuccess('linear');
       get()
         .refresh()
         .catch(() => {});
-    } catch {
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : 'unknown';
       set({
         error: 'Invalid API key or network error. Check your Linear API key and try again.',
         isLoading: false,
       });
+      analytics.integrationConnectFailed('linear', reason);
     }
   },
 
   disconnect: async () => {
     await storage.remove('linearApiKey');
+    analytics.integrationDisconnected('linear');
     set({
       apiKey: null,
       user: null,

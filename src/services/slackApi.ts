@@ -30,6 +30,8 @@ export interface SlackMessage {
   files?: unknown[];
 }
 
+import { captureApiError } from '@/lib/sentry';
+
 export class SlackApiService {
   private token: string;
   private baseUrl = 'https://slack.com/api';
@@ -46,7 +48,11 @@ export class SlackApiService {
       body,
     });
     const data = await res.json();
-    if (!data.ok) throw new Error(`Slack error: ${data.error}`);
+    if (!data.ok) {
+      const error = new Error(`Slack error: ${data.error as string}`);
+      captureApiError(error, 'slack', { method, slackError: data.error });
+      throw error;
+    }
     return data as T;
   }
 

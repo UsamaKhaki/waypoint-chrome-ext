@@ -21,6 +21,8 @@ export interface CalendarList {
   primary?: boolean;
 }
 
+import { captureApiError } from '@/lib/sentry';
+
 export class GoogleCalendarApiService {
   private token: string;
 
@@ -32,7 +34,11 @@ export class GoogleCalendarApiService {
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${this.token}` },
     });
-    if (!res.ok) throw new Error(`Google Calendar API error: ${res.status}`);
+    if (!res.ok) {
+      const error = new Error(`Google Calendar API error: ${res.status}`);
+      captureApiError(error, 'google_calendar', { status: res.status });
+      throw error;
+    }
     return res.json() as Promise<T>;
   }
 

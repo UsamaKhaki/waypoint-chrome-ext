@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
+import { analytics } from '@/lib/analytics';
 import {
   GitHubApiService,
   type GitHubUser,
@@ -55,24 +56,29 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
 
   connect: async (token: string) => {
     set({ isLoading: true, error: null });
+    analytics.integrationConnectStarted('github');
     try {
       const api = new GitHubApiService(token);
       const user = await api.getUser();
       await storage.set('githubToken', token);
       set({ token, user, isConnected: true, isLoading: false });
+      analytics.integrationConnectSuccess('github');
       get()
         .refresh()
         .catch(() => {});
-    } catch {
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : 'unknown';
       set({
         error: 'Invalid token or network error. Check your PAT and try again.',
         isLoading: false,
       });
+      analytics.integrationConnectFailed('github', reason);
     }
   },
 
   disconnect: async () => {
     await storage.remove('githubToken');
+    analytics.integrationDisconnected('github');
     set({
       token: null,
       user: null,

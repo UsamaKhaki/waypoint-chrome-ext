@@ -1,3 +1,5 @@
+import { captureApiError } from '@/lib/sentry';
+
 interface BgFetchOptions {
   method?: string;
   headers?: Record<string, string>;
@@ -22,14 +24,17 @@ export async function backgroundFetch(url: string, options?: BgFetchOptions): Pr
         { type: 'FETCH', url, ...options },
         (response: BgFetchResponse) => {
           if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
+            const error = new Error(chrome.runtime.lastError.message);
+            captureApiError(error, 'background_fetch', { url });
+            reject(error);
             return;
           }
           if (!response?.ok) {
-            // Surface the API's own error message when available
             const apiMessage =
               (response?.data as { message?: string } | undefined)?.message;
-            reject(new Error(apiMessage ?? response?.error ?? `HTTP ${response?.status}`));
+            const error = new Error(apiMessage ?? response?.error ?? `HTTP ${response?.status}`);
+            captureApiError(error, 'background_fetch', { url, status: response?.status });
+            reject(error);
             return;
           }
           resolve(response.data);

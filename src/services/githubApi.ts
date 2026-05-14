@@ -55,6 +55,8 @@ function repoName(repositoryUrl: string): string {
   return repositoryUrl.replace('https://api.github.com/repos/', '');
 }
 
+import { captureApiError } from '@/lib/sentry';
+
 export class GitHubApiService {
   private token: string;
   private baseUrl = 'https://api.github.com';
@@ -70,7 +72,11 @@ export class GitHubApiService {
         Accept: 'application/vnd.github.v3+json',
       },
     });
-    if (!res.ok) throw new Error(`GitHub API error: ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      const error = new Error(`GitHub API error: ${res.status} ${res.statusText}`);
+      captureApiError(error, 'github', { path, status: res.status });
+      throw error;
+    }
     return res.json() as Promise<T>;
   }
 

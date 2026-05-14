@@ -1,6 +1,9 @@
 import { StrictMode, useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/globals.css';
+import { initSentry, Sentry } from '@/lib/sentry';
+
+initSentry('palette');
 
 interface SnippetItem {
   id: string;
@@ -53,6 +56,8 @@ function GlobalPalette() {
         setCopied(null);
         close();
       }, 1000);
+    }).catch((err: Error) => {
+      Sentry.captureException(err, { tags: { context: 'palette', action: 'clipboard_write' } });
     });
   }, []);
 
@@ -213,6 +218,10 @@ function GlobalPalette() {
 const root = document.getElementById('palette-root')!;
 createRoot(root).render(
   <StrictMode>
-    <GlobalPalette />
+    <Sentry.ErrorBoundary
+      fallback={<div style={{ color: 'hsl(213 8% 46%)', fontSize: 13, padding: 24, textAlign: 'center' }}>Palette unavailable</div>}
+    >
+      <GlobalPalette />
+    </Sentry.ErrorBoundary>
   </StrictMode>
 );

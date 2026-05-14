@@ -30,6 +30,8 @@ export interface JiraIssue {
 const ISSUE_FIELDS =
   'summary,status,priority,assignee,reporter,issuetype,project,created,updated,labels,comment';
 
+import { captureApiError } from '@/lib/sentry';
+
 export class JiraApiService {
   private domain: string;
   private authHeader: string;
@@ -48,7 +50,11 @@ export class JiraApiService {
         Accept: 'application/json',
       },
     });
-    if (!res.ok) throw new Error(`Jira API error: ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      const error = new Error(`Jira API error: ${res.status} ${res.statusText}`);
+      captureApiError(error, 'jira', { path, status: res.status, domain: this.domain });
+      throw error;
+    }
     return res.json() as Promise<T>;
   }
 

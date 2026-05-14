@@ -39,6 +39,8 @@ export interface LinearNotification {
   issue: { id: string; identifier: string; title: string; url: string } | null;
 }
 
+import { captureApiError } from '@/lib/sentry';
+
 export class LinearApiService {
   private apiKey: string;
   private baseUrl = 'https://api.linear.app/graphql';
@@ -56,9 +58,17 @@ export class LinearApiService {
       },
       body: JSON.stringify({ query, variables }),
     });
-    if (!res.ok) throw new Error(`Linear API error: ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      const error = new Error(`Linear API error: ${res.status} ${res.statusText}`);
+      captureApiError(error, 'linear', { status: res.status });
+      throw error;
+    }
     const json = await res.json();
-    if (json.errors?.length) throw new Error(json.errors[0].message);
+    if (json.errors?.length) {
+      const error = new Error(json.errors[0].message as string);
+      captureApiError(error, 'linear', { graphqlErrors: json.errors });
+      throw error;
+    }
     return json.data as T;
   }
 

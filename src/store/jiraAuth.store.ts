@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { JiraApiService, type JiraUser, type JiraIssue } from '@/services/jiraApi';
+import { analytics } from '@/lib/analytics';
 
 interface JiraCredentials {
   domain: string;
@@ -51,25 +52,30 @@ export const useJiraAuthStore = create<JiraAuthState>((set, get) => ({
 
   connect: async (domain: string, email: string, apiToken: string) => {
     set({ isLoading: true, error: null });
+    analytics.integrationConnectStarted('jira');
     try {
       const api = new JiraApiService(domain, email, apiToken);
       const user = await api.getUser();
       const credentials = { domain, email, apiToken };
       await storage.set('jiraCredentials', credentials);
       set({ credentials, user, isConnected: true, isLoading: false });
+      analytics.integrationConnectSuccess('jira');
       get()
         .refresh()
         .catch(() => {});
-    } catch {
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : 'unknown';
       set({
         error: 'Invalid credentials or domain. Check your details and try again.',
         isLoading: false,
       });
+      analytics.integrationConnectFailed('jira', reason);
     }
   },
 
   disconnect: async () => {
     await storage.remove('jiraCredentials');
+    analytics.integrationDisconnected('jira');
     set({
       credentials: null,
       user: null,

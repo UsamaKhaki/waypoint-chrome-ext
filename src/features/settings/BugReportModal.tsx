@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bug, Send, CheckCircle2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { Sentry } from '@/lib/sentry';
 
 type BugCategory = 'ui' | 'github' | 'snippets' | 'notifications' | 'performance' | 'other';
 
@@ -34,6 +35,8 @@ export function BugReportModal({ onClose }: BugReportModalProps) {
     if (!isValid) return;
     setIsSubmitting(true);
 
+    const sentryEventId = Sentry.lastEventId?.();
+
     // Build a GitHub issue URL pre-filled with the bug report
     const issueBody = [
       `**Category:** ${CATEGORIES.find((c) => c.id === category)?.label}`,
@@ -47,8 +50,9 @@ export function BugReportModal({ onClose }: BugReportModalProps) {
       `- Waypoint v1.0.0`,
       `- Chrome ${navigator.userAgent.match(/Chrome\/([\d.]+)/)?.[1] ?? 'unknown'}`,
       `- ${navigator.platform}`,
+      sentryEventId ? `- Sentry event: ${sentryEventId}` : '',
     ]
-      .filter((l) => l !== undefined)
+      .filter((l) => l !== undefined && l !== '')
       .join('\n');
 
     const params = new URLSearchParams({

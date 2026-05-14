@@ -1,4 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { Sentry } from '@/lib/sentry';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { analytics } from '@/lib/analytics';
 import { MainLayout } from '@/layouts/MainLayout';
 import { SidebarNav } from '@/layouts/SidebarNav';
 import { TopBar } from '@/layouts/TopBar';
@@ -57,7 +60,18 @@ export default function App() {
   const [isBooting, setIsBooting] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const handleNavigate = useCallback((s: string) => setActiveSection(s as Section), []);
+  // Track time-on-section for abandonment analysis
+  const sectionEnteredAt = useRef<number>(Date.now());
+  const prevSection = useRef<string>('overview');
+
+  const handleNavigate = useCallback((s: string) => {
+    const duration = Date.now() - sectionEnteredAt.current;
+    analytics.sectionLeft(prevSection.current, duration);
+    analytics.sectionViewed(s);
+    prevSection.current = s;
+    sectionEnteredAt.current = Date.now();
+    setActiveSection(s as Section);
+  }, []);
   useCommandRegistration({ onNavigate: handleNavigate });
   useKeyboardShortcuts(handleNavigate);
   useApplySettings();
@@ -92,7 +106,14 @@ export default function App() {
     ])
       .then(async () => {
         const onboardingCompleted = await storage.get<boolean>('onboardingCompleted');
-        if (!onboardingCompleted) setShowOnboarding(true);
+        if (!onboardingCompleted) {
+          setShowOnboarding(true);
+          analytics.onboardingStarted();
+        }
+        analytics.sectionViewed('overview');
+      })
+      .catch((err: Error) => {
+        Sentry.captureException(err, { tags: { phase: 'app_boot' } });
       })
       .finally(() => setIsBooting(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -106,35 +127,38 @@ export default function App() {
   }
 
   const renderSection = () => {
+    const wrap = (name: string, node: ReactNode) => (
+      <ErrorBoundary name={name}>{node}</ErrorBoundary>
+    );
     switch (activeSection) {
       case 'overview':
-        return <OverviewPanel onNavigate={handleNavigate} />;
+        return wrap('overview', <OverviewPanel onNavigate={handleNavigate} />);
       case 'bookmarks':
-        return <BookmarksPanel />;
+        return wrap('bookmarks', <BookmarksPanel />);
       case 'environments':
-        return <EnvironmentsPanel />;
+        return wrap('environments', <EnvironmentsPanel />);
       case 'github':
-        return <GitHubPanel />;
+        return wrap('github', <GitHubPanel />);
       case 'linear':
-        return <LinearPanel />;
+        return wrap('linear', <LinearPanel />);
       case 'jira':
-        return <JiraPanel />;
+        return wrap('jira', <JiraPanel />);
       case 'slack':
-        return <SlackPanel />;
+        return wrap('slack', <SlackPanel />);
       case 'notion':
-        return <NotionPanel />;
+        return wrap('notion', <NotionPanel />);
       case 'google-calendar':
-        return <GoogleCalendarPanel />;
+        return wrap('google-calendar', <GoogleCalendarPanel />);
       case 'focus':
-        return <DailyFocusWidget />;
+        return wrap('focus', <DailyFocusWidget />);
       case 'tabs':
-        return <TabsPanel />;
+        return wrap('tabs', <TabsPanel />);
       case 'snippets':
-        return <SnippetsPanel />;
+        return wrap('snippets', <SnippetsPanel />);
       case 'sessions':
-        return <SessionsPanel />;
+        return wrap('sessions', <SessionsPanel />);
       case 'settings':
-        return <SettingsPanel />;
+        return wrap('settings', <SettingsPanel />);
       default:
         return null;
     }

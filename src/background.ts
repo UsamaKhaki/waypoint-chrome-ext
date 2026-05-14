@@ -1,4 +1,23 @@
 // Runs as Chrome extension service worker — no DOM, no React
+import * as Sentry from '@sentry/browser';
+
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+
+if (SENTRY_DSN) {
+  try {
+    Sentry.init({
+      dsn: SENTRY_DSN,
+      environment: import.meta.env.MODE,
+      release: 'waypoint@1.0.0',
+      // Disable all browser/DOM integrations — service worker has no window/document
+      defaultIntegrations: false,
+      tracesSampleRate: 0,
+      initialScope: { tags: { context: 'background' } },
+    });
+  } catch {
+    // Sentry init failed in service worker context — continue without it
+  }
+}
 
 const ALARM_NAME = 'waypoint-gh-poll';
 
@@ -48,7 +67,9 @@ function scheduleAlarm() {
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== ALARM_NAME) return;
-  pollGitHub();
+  pollGitHub().catch((err: Error) => {
+    Sentry.captureException(err, { tags: { action: 'poll_github' } });
+  });
 });
 
 async function pollGitHub() {
@@ -85,9 +106,15 @@ async function pollGitHub() {
         });
         chrome.storage.local.set({ lastNotifiedPRs: total_count });
       }
+    } else {
+      Sentry.captureMessage(`GitHub PR poll returned ${prRes.status}`, {
+        level: 'warning',
+        tags: { action: 'poll_github_prs' },
+      });
     }
-  } catch {
-    // Network error — silently skip
+  } catch (err) {
+    // Network error — capture and continue to CI check
+    Sentry.captureException(err, { tags: { action: 'poll_github_prs' } });
   }
 
   try {
@@ -122,15 +149,20 @@ async function pollGitHub() {
         chrome.storage.local.set({ lastNotifiedCI: key });
       }
     }
-  } catch {
-    // Network error — silently skip
+  } catch (err) {
+    Sentry.captureException(err, { tags: { action: 'poll_github_ci' } });
   }
 }
 
 // ── Message passing ───────────────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === 'POLL_NOW') {
-    pollGitHub().then(() => sendResponse({ ok: true }));
+    pollGitHub()
+      .then(() => sendResponse({ ok: true }))
+      .catch((err: Error) => {
+        Sentry.captureException(err, { tags: { action: 'poll_now' } });
+        sendResponse({ ok: false, error: err.message });
+      });
     return true;
   }
   if (msg.type === 'UPDATE_ALARM_INTERVAL') {
@@ -151,7 +183,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const data = await res.json();
         sendResponse({ ok: res.ok, status: res.status, data });
       })
-      .catch((err: Error) => sendResponse({ ok: false, error: err.message }));
+      .catch((err: Error) => {
+        Sentry.captureException(err, {
+          tags: { action: 'background_fetch_proxy' },
+          extra: { url: msg.url as string },
+        });
+        sendResponse({ ok: false, error: err.message });
+      });
     return true; // keep channel open for async response
   }
 });
