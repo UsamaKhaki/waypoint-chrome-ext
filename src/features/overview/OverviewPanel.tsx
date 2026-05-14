@@ -28,6 +28,7 @@ import { OverviewEditor } from './OverviewEditor';
 import { OpenPRs } from './OpenPRs';
 import { CicdOverview } from './CicdOverview';
 import { IntegrationsWidget } from './IntegrationsWidget';
+import { SlackOverview } from './SlackOverview';
 
 const SECTION_CARDS = [
   {
@@ -338,6 +339,19 @@ function LeftSection({
           exit={{ opacity: 0 }}
         >
           <IntegrationsWidget />
+        </motion.div>
+      );
+
+    case 'slack-unread':
+      return (
+        <motion.div
+          key="slack-unread"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <SlackOverview onNavigate={onNavigate} />
         </motion.div>
       );
 

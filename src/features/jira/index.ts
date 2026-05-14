@@ -1,0 +1,1 @@
+export { JiraPanel } from './JiraPanel';

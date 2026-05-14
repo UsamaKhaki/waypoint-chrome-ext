@@ -13,9 +13,25 @@
     "notifications",
     "identity"
   ],
+  "host_permissions": [
+    "https://slack.com/api/*",
+    "https://api.notion.com/*",
+    "https://www.googleapis.com/*",
+    "https://accounts.google.com/*",
+    "https://api.github.com/*",
+    "https://*.atlassian.net/*",
+    "https://api.linear.app/*"
+  ],
   "oauth2": {
     "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
-    "scopes": ["openid", "email", "profile"]
+    "scopes": [
+      "openid",
+      "email",
+      "profile",
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
   },
   "background": {
     "service_worker": "background.js",
@@ -23,9 +39,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "exclude_matches": ["chrome://*/*", "chrome-extension://*/*", "about://*/*"]
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"]
     }
   ],
   "web_accessible_resources": [

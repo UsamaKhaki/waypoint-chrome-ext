@@ -8,7 +8,8 @@ export type OverviewSectionId =
   | 'github-prs'
   | 'pinned'
   | 'cicd'
-  | 'integrations';
+  | 'integrations'
+  | 'slack-unread';
 
 export interface OverviewSectionConfig {
   id: OverviewSectionId;
@@ -24,6 +25,7 @@ const DEFAULT_LAYOUT: OverviewSectionConfig[] = [
   { id: 'pinned', label: 'Pinned Bookmarks', visible: true },
   { id: 'cicd', label: 'CI/CD Status', visible: true },
   { id: 'integrations', label: 'Linear & Jira', visible: true },
+  { id: 'slack-unread', label: 'Slack Unread', visible: true },
 ];
 
 interface OverviewLayoutState {

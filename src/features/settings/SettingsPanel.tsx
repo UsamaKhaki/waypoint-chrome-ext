@@ -19,8 +19,14 @@ import {
   Plug,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
+import { GitHubIcon, LinearIcon, JiraIcon, SlackIcon, NotionIcon, GoogleCalendarIcon } from '@/components/icons/ConnectorIcons';
 import { useGoogleProfileStore } from '@/store/googleProfile.store';
 import { useGitHubAuthStore } from '@/store/githubAuth.store';
+import { useLinearAuthStore } from '@/store/linearAuth.store';
+import { useJiraAuthStore } from '@/store/jiraAuth.store';
+import { useSlackAuthStore } from '@/store/slackAuth.store';
+import { useNotionAuthStore } from '@/store/notionAuth.store';
+import { useGoogleCalendarAuthStore } from '@/store/googleCalendarAuth.store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BugReportModal } from './BugReportModal';
 import { useSettingsStore } from '@/store/settings.store';
@@ -885,9 +891,33 @@ function ConnectorCard({
   );
 }
 
-function ConnectorsSection({ onNavigateToGitHub }: { onNavigateToGitHub: () => void }) {
+function ConnectorsSection({
+  onNavigateToGitHub,
+  onNavigateToLinear,
+  onNavigateToJira,
+  onNavigateToSlack,
+  onNavigateToNotion,
+  onNavigateToCalendar,
+}: {
+  onNavigateToGitHub: () => void;
+  onNavigateToLinear: () => void;
+  onNavigateToJira: () => void;
+  onNavigateToSlack: () => void;
+  onNavigateToNotion: () => void;
+  onNavigateToCalendar: () => void;
+}) {
   const githubConnected = useGitHubAuthStore((s) => s.isConnected);
   const githubUser = useGitHubAuthStore((s) => s.user);
+  const linearConnected = useLinearAuthStore((s) => s.isConnected);
+  const linearUser = useLinearAuthStore((s) => s.user);
+  const jiraConnected = useJiraAuthStore((s) => s.isConnected);
+  const jiraUser = useJiraAuthStore((s) => s.user);
+  const slackConnected = useSlackAuthStore((s) => s.isConnected);
+  const slackUser = useSlackAuthStore((s) => s.user);
+  const notionConnected = useNotionAuthStore((s) => s.isConnected);
+  const notionUser = useNotionAuthStore((s) => s.user);
+  const calendarConnected = useGoogleCalendarAuthStore((s) => s.isConnected);
+  const calendarProfile = useGoogleCalendarAuthStore((s) => s.userProfile);
 
   const connectors: ConnectorDef[] = [
     {
@@ -898,72 +928,71 @@ function ConnectorsSection({ onNavigateToGitHub }: { onNavigateToGitHub: () => v
           ? `Connected as @${githubUser.login} · PRs, CI/CD, and repo data`
           : 'Pull requests, CI/CD status, issues, and notifications',
       status: githubConnected ? 'connected' : 'not_connected',
-      logo: (
-        <svg
-          viewBox="0 0 24 24"
-          className="h-5 w-5 fill-current text-primary"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'jira',
-      name: 'Jira',
-      description: 'Assigned tickets, sprint board, and issue tracking',
-      status: 'coming_soon',
-      logo: <span className="text-blue-400 font-black text-sm">J</span>,
+      logo: <GitHubIcon className="h-5 w-5" />,
     },
     {
       id: 'linear',
       name: 'Linear',
-      description: 'Issues assigned to you, cycles, and project updates',
-      status: 'coming_soon',
-      logo: (
-        <svg
-          viewBox="0 0 100 100"
-          className="h-5 w-5"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M1.22541 61.5228c-.2225-.9485.90748-1.5459 1.59638-.857L37.3342 95.1782c.6889.6889.0915 1.8189-.857 1.5964C20.0515 92.4522 5.54779 78.0766 1.22541 61.5228zM.00189135 46.8891c-.01764375 1.2245 1.44171 1.8377 2.18648 .9268L52.8824 2.27423c.9109-.74477.2977-2.20412-.9268-2.18648C29.7768.221221 8.44911 20.3696.00189135 46.8891zM60.4115 3.7399c-.9486-.222-1.5459.9075-.857 1.5964L96.2598 42.0428c.6888.6889 1.8188.0915 1.5963-.857-4.3224-16.5538-18.698-30.9294-37.4446-35.4459zM3.73976 60.4115c-.222-.9486.90749-1.5459 1.59639-.857L60.4115 96.2601c.6889.6889.0915 1.8188-.857 1.5963C43.0039 93.5342 8.08357 78.6485 3.73976 60.4115zM\n97.8746 55.8137c.2225.9485-.9075 1.5459-1.5964.857L61.6658 21.8214c-.6889-.6889-.0915-1.8189.857-1.5964 16.4762 4.3214 30.9298 18.697 35.3518 35.5887z"
-            fill="#5E6AD2"
-          />
-        </svg>
-      ),
+      description:
+        linearConnected && linearUser
+          ? `Connected as ${linearUser.name} · Issues, cycles, and projects`
+          : 'Issues assigned to you, cycles, and project updates',
+      status: linearConnected ? 'connected' : 'not_connected',
+      logo: <LinearIcon className="h-5 w-5" />,
+    },
+    {
+      id: 'jira',
+      name: 'Jira',
+      description:
+        jiraConnected && jiraUser
+          ? `Connected as ${jiraUser.displayName} · Issues and sprint tracking`
+          : 'Assigned tickets, sprint board, and issue tracking',
+      status: jiraConnected ? 'connected' : 'not_connected',
+      logo: <JiraIcon className="h-5 w-5" />,
     },
     {
       id: 'slack',
       name: 'Slack',
-      description: 'Mentions, DMs, and channel notifications',
-      status: 'coming_soon',
-      logo: <span className="text-green-400 font-black text-sm">#</span>,
-    },
-    {
-      id: 'google-calendar',
-      name: 'Google Calendar',
-      description: "Today's meetings and upcoming events in your overview",
-      status: 'coming_soon',
-      logo: (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"
-            fill="#4285F4"
-          />
-          <path d="M7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm-8 4h2v2H7zm4 0h2v2h-2z" fill="#4285F4" />
-        </svg>
-      ),
+      description:
+        slackConnected && slackUser
+          ? `Connected as ${slackUser.real_name} · DMs, mentions, and channels`
+          : 'Mentions, DMs, and channel notifications',
+      status: slackConnected ? 'connected' : 'not_connected',
+      logo: <SlackIcon className="h-5 w-5" />,
     },
     {
       id: 'notion',
       name: 'Notion',
-      description: 'Quick-access pages, databases, and recent docs',
-      status: 'coming_soon',
-      logo: <span className="text-primary font-black text-sm">N</span>,
+      description:
+        notionConnected && notionUser
+          ? `Connected as ${notionUser.name} · Pages and databases`
+          : 'Quick-access pages, databases, and recent docs',
+      status: notionConnected ? 'connected' : 'not_connected',
+      logo: <NotionIcon className="h-5 w-5" />,
+    },
+    {
+      id: 'google-calendar',
+      name: 'Google Calendar',
+      description:
+        calendarConnected && calendarProfile
+          ? `Connected as ${calendarProfile.email} · Today's meetings`
+          : "Today's meetings and upcoming events in your overview",
+      status: calendarConnected ? 'connected' : 'not_connected',
+      logo: <GoogleCalendarIcon className="h-5 w-5" />,
     },
   ];
+
+  const onConnectMap: Record<string, (() => void) | undefined> = {
+    github: onNavigateToGitHub,
+    linear: onNavigateToLinear,
+    jira: onNavigateToJira,
+    slack: onNavigateToSlack,
+    notion: onNavigateToNotion,
+    'google-calendar': onNavigateToCalendar,
+  };
+
+  const active = connectors.filter((c) => c.status !== 'coming_soon');
+  const soon = connectors.filter((c) => c.status === 'coming_soon');
 
   return (
     <>
@@ -973,35 +1002,27 @@ function ConnectorsSection({ onNavigateToGitHub }: { onNavigateToGitHub: () => v
       />
 
       <div className="space-y-6">
-        {/* Active */}
         <div>
-          <p className="text-xs font-medium text-muted mb-3 uppercase tracking-wider">Active</p>
+          <p className="text-xs font-medium text-muted mb-3 uppercase tracking-wider">Available</p>
           <div className="rounded-xl border border-border-subtle overflow-hidden">
-            {connectors
-              .filter((c) => c.status !== 'coming_soon')
-              .map((c) => (
-                <ConnectorCard
-                  key={c.id}
-                  connector={c}
-                  onConnect={c.id === 'github' ? onNavigateToGitHub : undefined}
-                />
-              ))}
+            {active.map((c) => (
+              <ConnectorCard key={c.id} connector={c} onConnect={onConnectMap[c.id]} />
+            ))}
           </div>
         </div>
 
-        {/* Coming soon */}
-        <div>
-          <p className="text-xs font-medium text-muted mb-3 uppercase tracking-wider">
-            Coming soon
-          </p>
-          <div className="rounded-xl border border-border-subtle overflow-hidden">
-            {connectors
-              .filter((c) => c.status === 'coming_soon')
-              .map((c) => (
+        {soon.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-muted mb-3 uppercase tracking-wider">
+              Coming soon
+            </p>
+            <div className="rounded-xl border border-border-subtle overflow-hidden">
+              {soon.map((c) => (
                 <ConnectorCard key={c.id} connector={c} />
               ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <p className="text-xs text-muted">
           Want a specific integration?{' '}
@@ -1040,9 +1061,12 @@ export function SettingsPanel() {
       case 'connectors':
         return (
           <ConnectorsSection
-            onNavigateToGitHub={() => {
-              /* parent handles */
-            }}
+            onNavigateToGitHub={() => {}}
+            onNavigateToLinear={() => {}}
+            onNavigateToJira={() => {}}
+            onNavigateToSlack={() => {}}
+            onNavigateToNotion={() => {}}
+            onNavigateToCalendar={() => {}}
           />
         );
       case 'data':

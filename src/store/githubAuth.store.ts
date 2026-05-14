@@ -93,8 +93,8 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
     try {
       const api = new GitHubApiService(token);
       const repos = useGitHubStore.getState().repos;
-      const [user, myPRs, assignedIssues, reviewRequests, notifications, ciStatus] =
-        await Promise.all([
+      const [userRes, myPRsRes, assignedRes, reviewsRes, notificationsRes, ciRes] =
+        await Promise.allSettled([
           api.getUser(),
           api.getMyOpenPRs(),
           api.getAssignedIssues(),
@@ -102,15 +102,21 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
           api.getNotifications(),
           api.getAllRepoCiStatus(repos.map((r) => ({ fullName: r.fullName, url: r.url }))),
         ]);
-      set({
-        user,
-        myPRs,
-        assignedIssues,
-        reviewRequests,
-        notifications,
-        ciStatus,
-        isLoading: false,
-      });
+
+      const partial: Partial<GitHubAuthState> = { isLoading: false };
+      if (userRes.status === 'fulfilled') partial.user = userRes.value;
+      if (myPRsRes.status === 'fulfilled') partial.myPRs = myPRsRes.value;
+      if (assignedRes.status === 'fulfilled') partial.assignedIssues = assignedRes.value;
+      if (reviewsRes.status === 'fulfilled') partial.reviewRequests = reviewsRes.value;
+      if (notificationsRes.status === 'fulfilled') partial.notifications = notificationsRes.value;
+      if (ciRes.status === 'fulfilled') partial.ciStatus = ciRes.value;
+
+      // Surface an error only if the core user fetch fails
+      if (userRes.status === 'rejected') {
+        partial.error = 'Failed to fetch GitHub data. Check your connection.';
+      }
+
+      set(partial);
     } catch {
       set({ error: 'Failed to fetch GitHub data. Check your connection.', isLoading: false });
     }

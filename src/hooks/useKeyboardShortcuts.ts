@@ -20,12 +20,25 @@ const SECTION_MAP: Record<string, string> = {
 const CHORD_MAP: Record<string, Record<string, string>> = {
   g: {
     h: 'github',
-    p: 'github', // GitHub PRs — navigate to github section
+    p: 'github',
+    c: 'google-calendar',
   },
   e: {
     l: 'environments',
     s: 'environments',
     p: 'environments',
+  },
+  j: {
+    i: 'jira',
+  },
+  l: {
+    i: 'linear',
+  },
+  s: {
+    l: 'slack',
+  },
+  n: {
+    o: 'notion',
   },
 };
 

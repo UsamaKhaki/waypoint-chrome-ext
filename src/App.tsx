@@ -13,6 +13,11 @@ import { CommandPalette, useCommandRegistration } from '@/features/command-palet
 import { BookmarksPanel } from '@/features/bookmarks';
 import { EnvironmentsPanel } from '@/features/environments';
 import { GitHubPanel } from '@/features/github';
+import { LinearPanel } from '@/features/linear';
+import { JiraPanel } from '@/features/jira';
+import { SlackPanel } from '@/features/slack';
+import { NotionPanel } from '@/features/notion';
+import { GoogleCalendarPanel } from '@/features/google-calendar';
 import { useGitHubStore } from '@/store/github.store';
 import { DailyFocusWidget } from '@/features/widgets';
 import { WorkspaceModeIndicator } from '@/features/focus-modes';
@@ -36,6 +41,11 @@ type Section =
   | 'bookmarks'
   | 'environments'
   | 'github'
+  | 'linear'
+  | 'jira'
+  | 'slack'
+  | 'notion'
+  | 'google-calendar'
   | 'focus'
   | 'tabs'
   | 'snippets'
@@ -105,6 +115,16 @@ export default function App() {
         return <EnvironmentsPanel />;
       case 'github':
         return <GitHubPanel />;
+      case 'linear':
+        return <LinearPanel />;
+      case 'jira':
+        return <JiraPanel />;
+      case 'slack':
+        return <SlackPanel />;
+      case 'notion':
+        return <NotionPanel />;
+      case 'google-calendar':
+        return <GoogleCalendarPanel />;
       case 'focus':
         return <DailyFocusWidget />;
       case 'tabs':

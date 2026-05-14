@@ -139,6 +139,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     });
     sendResponse({ ok: true });
   }
+
+  // Proxy fetch through service worker to bypass CORS in extension pages
+  if (msg.type === 'FETCH') {
+    fetch(msg.url as string, {
+      method: msg.method ?? 'GET',
+      headers: msg.headers as Record<string, string>,
+      body: msg.body ?? undefined,
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        sendResponse({ ok: res.ok, status: res.status, data });
+      })
+      .catch((err: Error) => sendResponse({ ok: false, error: err.message }));
+    return true; // keep channel open for async response
+  }
 });
 
 chrome.notifications.onClicked.addListener(() => {

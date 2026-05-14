@@ -217,4 +217,9 @@ export type StorageKey =
   | 'notificationsEnabled'
   | 'githubToken'
   | 'widgets'
-  | 'googleProfile';
+  | 'googleProfile'
+  | 'linearApiKey'
+  | 'jiraCredentials'
+  | 'slackToken'
+  | 'notionToken'
+  | 'googleCalendarConnected';
