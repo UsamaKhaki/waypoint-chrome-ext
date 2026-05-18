@@ -32,12 +32,13 @@ export const useCommandPaletteStore = create<CommandPaletteState>((set, get) => 
 
   executeCommand: async (command) => {
     command.action();
+    // Close immediately — don't wait for the async storage write
+    get().close();
     const recent: RecentCommand = { commandId: command.id, usedAt: Date.now() };
     const prev = get().recentCommands.filter((r) => r.commandId !== command.id);
     const updated = [recent, ...prev].slice(0, RECENT_COMMANDS_MAX);
     set({ recentCommands: updated });
-    await storage.set('recentCommands', updated);
-    get().close();
+    storage.set('recentCommands', updated).catch(() => {});
   },
 
   loadRecentCommands: async () => {

@@ -13,7 +13,7 @@ export function MainLayout({ sidebar, header, children, className }: MainLayoutP
   const isCollapsed = useSettingsStore((s) => s.settings.sidebarCollapsed ?? false);
 
   return (
-    <div className="h-screen w-screen flex overflow-hidden bg-background">
+    <div data-testid="main-layout" className="h-screen w-screen flex overflow-hidden bg-background">
       {sidebar && (
         <motion.aside
           animate={{ width: isCollapsed ? 56 : 240 }}

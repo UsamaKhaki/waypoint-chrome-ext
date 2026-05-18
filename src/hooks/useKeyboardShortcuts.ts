@@ -61,13 +61,9 @@ export function useKeyboardShortcuts(onNavigate: SectionNavigator) {
       const isInInput =
         target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
-      // CMD+K → always open palette, even in inputs
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        openPalette();
-        clearChord();
-        return;
-      }
+      // CMD+K is handled exclusively by CommandPalette.tsx (toggle).
+      // Do NOT handle it here — dual listeners cause open/close race conditions.
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') return;
 
       // Don't intercept other shortcuts when palette is open or user is typing
       if (paletteOpen || isInInput) return;

@@ -1,0 +1,40 @@
+import type { Bookmark } from '../../src/types/index';
+
+export const BOOKMARK_FIXTURES: Bookmark[] = [
+  {
+    id: 'bm-1',
+    title: 'GitHub Pull Requests',
+    url: 'https://github.com/pulls',
+    description: 'All open PRs',
+    tags: ['github', 'code-review'],
+    category: 'github',
+    isPinned: true,
+    isFavorite: false,
+    order: 0,
+    createdAt: Date.now() - 86400000,
+  },
+  {
+    id: 'bm-2',
+    title: 'Staging Dashboard',
+    url: 'https://staging.acme.com/dashboard',
+    description: 'Stage environment',
+    tags: ['staging', 'monitoring'],
+    category: 'monitoring',
+    isPinned: false,
+    isFavorite: true,
+    order: 1,
+    createdAt: Date.now() - 3600000,
+  },
+  {
+    id: 'bm-3',
+    title: 'Local Dev Server',
+    url: 'http://localhost:3000',
+    description: 'Local development',
+    tags: ['local', 'dev'],
+    category: 'local-dev',
+    isPinned: false,
+    isFavorite: false,
+    order: 2,
+    createdAt: Date.now() - 1800000,
+  },
+];

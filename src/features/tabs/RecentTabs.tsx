@@ -26,6 +26,7 @@ export function RecentTabs() {
           {recent.map((tab) => (
             <div
               key={tab.id}
+              data-testid={`tab-row-${tab.id}`}
               className="group flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-surface-elevated transition-colors cursor-pointer"
               onClick={() => chrome.tabs.update(tab.id, { active: true })}
             >

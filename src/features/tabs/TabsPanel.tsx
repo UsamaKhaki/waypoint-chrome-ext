@@ -5,7 +5,7 @@ import { BulkTabActions } from './BulkTabActions';
 
 export function TabsPanel() {
   return (
-    <div className="space-y-8">
+    <div data-testid="tabs-panel" className="space-y-8">
       <div>
         <h1 className="text-lg font-semibold text-primary">Tab Manager</h1>
         <p className="text-sm text-muted mt-0.5">Reduce tab chaos, manage sessions</p>

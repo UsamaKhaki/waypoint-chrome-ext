@@ -27,13 +27,13 @@ export function EnvironmentsPanel() {
   };
 
   return (
-    <div className="space-y-6">
+    <div data-testid="environments-panel" className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-primary">Environments</h1>
           <p className="text-sm text-muted mt-0.5">{visibleEnvs.length} environments configured</p>
         </div>
-        <Button size="sm" onClick={openAdd}>
+        <Button data-testid="add-environment-btn" size="sm" onClick={openAdd}>
           <Plus className="h-3.5 w-3.5" /> Add Environment
         </Button>
       </div>

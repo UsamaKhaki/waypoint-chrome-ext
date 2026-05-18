@@ -31,31 +31,32 @@ const ISSUE_FIELDS =
   'summary,status,priority,assignee,reporter,issuetype,project,created,updated,labels,comment';
 
 import { captureApiError } from '@/lib/sentry';
+import { backgroundFetch } from './backgroundFetch';
 
 export class JiraApiService {
   private domain: string;
-  private authHeader: string;
+  private headers: Record<string, string>;
   private baseUrl: string;
 
   constructor(domain: string, email: string, apiToken: string) {
     this.domain = domain;
     this.baseUrl = `https://${domain}.atlassian.net/rest/api/3`;
-    this.authHeader = `Basic ${btoa(`${email}:${apiToken}`)}`;
+    this.headers = {
+      Authorization: `Basic ${btoa(`${email}:${apiToken}`)}`,
+      Accept: 'application/json',
+    };
   }
 
   private async fetch<T>(path: string): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      headers: {
-        Authorization: this.authHeader,
-        Accept: 'application/json',
-      },
-    });
-    if (!res.ok) {
-      const error = new Error(`Jira API error: ${res.status} ${res.statusText}`);
-      captureApiError(error, 'jira', { path, status: res.status, domain: this.domain });
+    try {
+      return (await backgroundFetch(`${this.baseUrl}${path}`, {
+        headers: this.headers,
+      })) as T;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      captureApiError(error, 'jira', { path, domain: this.domain });
       throw error;
     }
-    return res.json() as Promise<T>;
   }
 
   async getUser(): Promise<JiraUser> {

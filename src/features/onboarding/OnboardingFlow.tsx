@@ -81,13 +81,14 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background">
+    <div data-testid="onboarding-flow" className="fixed inset-0 z-[9999] flex items-center justify-center bg-background">
       <div className="w-full max-w-md px-6">
         {/* Progress dots */}
         <div className="flex justify-center gap-2 mb-10">
           {STEPS.map((_, i) => (
             <button
               key={i}
+              data-testid={`onboarding-dot-${i}`}
               onClick={() => setStep(i)}
               className={cn(
                 'h-1.5 rounded-full transition-all duration-300',
@@ -114,7 +115,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-primary">{current.title}</h2>
+              <h2 data-testid="onboarding-title" className="text-xl font-semibold text-primary">{current.title}</h2>
               <p className="text-sm text-secondary leading-relaxed">{current.description}</p>
             </div>
 
@@ -129,12 +130,13 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         {/* Actions */}
         <div className="flex items-center justify-between mt-8">
           <button
+            data-testid="onboarding-skip"
             onClick={handleSkip}
             className="text-sm text-muted hover:text-secondary transition-colors"
           >
             Skip intro
           </button>
-          <Button onClick={handleNext} className="gap-2">
+          <Button data-testid="onboarding-next" onClick={handleNext} className="gap-2">
             {isLast ? (
               <>
                 <Check className="h-4 w-4" /> Get Started

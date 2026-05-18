@@ -66,7 +66,7 @@ export function DailyFocusWidget() {
   ] as const;
 
   return (
-    <div className="space-y-6">
+    <div data-testid="focus-panel" className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -95,6 +95,7 @@ export function DailyFocusWidget() {
           return (
             <button
               key={tab.id}
+              data-testid={`focus-tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
@@ -124,6 +125,7 @@ export function DailyFocusWidget() {
             {/* Add input */}
             <div className="flex gap-2">
               <Input
+                data-testid="priority-input"
                 placeholder="Add a priority for today..."
                 value={newPriority}
                 onChange={(e) => setNewPriority(e.target.value)}
@@ -149,6 +151,7 @@ export function DailyFocusWidget() {
                 {priorities.map((item) => (
                   <motion.div
                     key={item.id}
+                    data-testid={`priority-item-${item.id}`}
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -156,6 +159,7 @@ export function DailyFocusWidget() {
                     className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-elevated transition-colors"
                   >
                     <button
+                      data-testid={`priority-check-${item.id}`}
                       onClick={() => togglePriority(item.id)}
                       className="flex-shrink-0 transition-colors text-muted hover:text-accent"
                     >
@@ -197,6 +201,7 @@ export function DailyFocusWidget() {
             transition={{ duration: 0.15 }}
           >
             <textarea
+              data-testid="focus-notes"
               value={notes}
               onChange={(e) => handleNotesChange(e.target.value)}
               placeholder="Write your notes for today... (markdown supported)"

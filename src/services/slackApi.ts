@@ -31,6 +31,7 @@ export interface SlackMessage {
 }
 
 import { captureApiError } from '@/lib/sentry';
+import { backgroundFetch } from './backgroundFetch';
 
 export class SlackApiService {
   private token: string;
@@ -41,13 +42,12 @@ export class SlackApiService {
   }
 
   private async fetch<T>(method: string, params?: Record<string, string>): Promise<T> {
-    // Use POST + application/x-www-form-urlencoded (CORS simple request — no preflight)
-    const body = new URLSearchParams({ token: this.token, ...params });
-    const res = await fetch(`${this.baseUrl}/${method}`, {
+    const body = new URLSearchParams({ token: this.token, ...params }).toString();
+    const data = (await backgroundFetch(`${this.baseUrl}/${method}`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
-    });
-    const data = await res.json();
+    })) as { ok: boolean; error?: string } & T;
     if (!data.ok) {
       const error = new Error(`Slack error: ${data.error as string}`);
       captureApiError(error, 'slack', { method, slackError: data.error });

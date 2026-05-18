@@ -89,6 +89,7 @@ export function EnvironmentCard({ environment, onEdit }: EnvironmentCardProps) {
     <>
       <motion.div
         layout
+        data-testid={`environment-card-${environment.id}`}
         className={cn('card overflow-hidden', isProduction && 'ring-1 ring-env-production/30')}
         style={{ borderColor: `${environment.color}20` }}
       >

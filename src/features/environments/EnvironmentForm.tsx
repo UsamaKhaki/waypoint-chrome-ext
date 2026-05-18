@@ -89,9 +89,10 @@ export function EnvironmentForm({ isOpen, onClose, environment }: EnvironmentFor
       title={environment ? 'Edit Environment' : 'Add Environment'}
       size="lg"
     >
-      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+      <div data-testid="environment-form" className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
         <div className="flex gap-3">
           <Input
+            data-testid="env-form-name"
             placeholder="Environment name *"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -164,7 +165,7 @@ export function EnvironmentForm({ isOpen, onClose, environment }: EnvironmentFor
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>{environment ? 'Save Changes' : 'Add Environment'}</Button>
+          <Button data-testid="env-form-save" onClick={handleSubmit}>{environment ? 'Save Changes' : 'Add Environment'}</Button>
         </div>
       </div>
     </Modal>

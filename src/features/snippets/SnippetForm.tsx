@@ -79,8 +79,9 @@ export function SnippetForm({ isOpen, onClose, snippet, prefill }: SnippetFormPr
       title={snippet ? 'Edit Snippet' : 'Add Snippet'}
       size="lg"
     >
-      <div className="space-y-3">
+      <div data-testid="snippet-form" className="space-y-3">
         <Input
+          data-testid="snippet-form-title"
           placeholder="Title *"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -111,6 +112,7 @@ export function SnippetForm({ isOpen, onClose, snippet, prefill }: SnippetFormPr
         <div>
           <label className="text-xs text-muted mb-1 block">Content *</label>
           <textarea
+            data-testid="snippet-form-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Paste your snippet, command, or query..."
@@ -145,7 +147,7 @@ export function SnippetForm({ isOpen, onClose, snippet, prefill }: SnippetFormPr
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>{snippet ? 'Save Changes' : 'Add Snippet'}</Button>
+          <Button data-testid="snippet-form-save" onClick={handleSubmit}>{snippet ? 'Save Changes' : 'Add Snippet'}</Button>
         </div>
       </div>
     </Modal>

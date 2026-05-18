@@ -395,6 +395,7 @@ function AppearanceSection() {
           {ACCENT_COLORS.map((color) => (
             <button
               key={color.value}
+              data-testid={`accent-color-${color.value.replace('#', '')}`}
               onClick={() => update({ accentColor: color.value })}
               title={color.label}
               className="relative h-8 w-8 rounded-full ring-offset-2 ring-offset-background transition-all hover:scale-110 active:scale-95"
@@ -666,6 +667,7 @@ function DataSection() {
               <p className="text-xs text-muted mt-0.5">Download all your data as a JSON file</p>
             </div>
             <Button
+              data-testid="settings-export-btn"
               variant="outline"
               size="sm"
               onClick={handleExport}
@@ -850,9 +852,11 @@ interface ConnectorDef {
 function ConnectorCard({
   connector,
   onConnect,
+  onDisconnect,
 }: {
   connector: ConnectorDef;
   onConnect?: () => void;
+  onDisconnect?: () => void;
 }) {
   return (
     <div className="flex items-center gap-4 px-4 py-4 border-b border-border-subtle last:border-0">
@@ -872,9 +876,22 @@ function ConnectorCard({
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {connector.status === 'connected' && (
-          <span className="flex items-center gap-1.5 text-xs text-success font-medium">
-            <Check className="h-3.5 w-3.5" /> Connected
-          </span>
+          <>
+            <span className="flex items-center gap-1.5 text-xs text-success font-medium">
+              <Check className="h-3.5 w-3.5" /> Connected
+            </span>
+            {onDisconnect && (
+              <Button
+                data-testid={`disconnect-${connector.id}`}
+                size="sm"
+                variant="ghost"
+                onClick={onDisconnect}
+                className="text-muted hover:text-destructive"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </>
         )}
         {connector.status === 'not_connected' && (
           <Button size="sm" variant="outline" onClick={onConnect}>
@@ -908,16 +925,22 @@ function ConnectorsSection({
 }) {
   const githubConnected = useGitHubAuthStore((s) => s.isConnected);
   const githubUser = useGitHubAuthStore((s) => s.user);
+  const githubDisconnect = useGitHubAuthStore((s) => s.disconnect);
   const linearConnected = useLinearAuthStore((s) => s.isConnected);
   const linearUser = useLinearAuthStore((s) => s.user);
+  const linearDisconnect = useLinearAuthStore((s) => s.disconnect);
   const jiraConnected = useJiraAuthStore((s) => s.isConnected);
   const jiraUser = useJiraAuthStore((s) => s.user);
+  const jiraDisconnect = useJiraAuthStore((s) => s.disconnect);
   const slackConnected = useSlackAuthStore((s) => s.isConnected);
   const slackUser = useSlackAuthStore((s) => s.user);
+  const slackDisconnect = useSlackAuthStore((s) => s.disconnect);
   const notionConnected = useNotionAuthStore((s) => s.isConnected);
   const notionUser = useNotionAuthStore((s) => s.user);
+  const notionDisconnect = useNotionAuthStore((s) => s.disconnect);
   const calendarConnected = useGoogleCalendarAuthStore((s) => s.isConnected);
   const calendarProfile = useGoogleCalendarAuthStore((s) => s.userProfile);
+  const calendarDisconnect = useGoogleCalendarAuthStore((s) => s.disconnect);
 
   const connectors: ConnectorDef[] = [
     {
@@ -991,6 +1014,15 @@ function ConnectorsSection({
     'google-calendar': onNavigateToCalendar,
   };
 
+  const onDisconnectMap: Record<string, (() => void) | undefined> = {
+    github: githubDisconnect,
+    linear: linearDisconnect,
+    jira: jiraDisconnect,
+    slack: slackDisconnect,
+    notion: notionDisconnect,
+    'google-calendar': calendarDisconnect,
+  };
+
   const active = connectors.filter((c) => c.status !== 'coming_soon');
   const soon = connectors.filter((c) => c.status === 'coming_soon');
 
@@ -1006,7 +1038,7 @@ function ConnectorsSection({
           <p className="text-xs font-medium text-muted mb-3 uppercase tracking-wider">Available</p>
           <div className="rounded-xl border border-border-subtle overflow-hidden">
             {active.map((c) => (
-              <ConnectorCard key={c.id} connector={c} onConnect={onConnectMap[c.id]} />
+              <ConnectorCard key={c.id} connector={c} onConnect={onConnectMap[c.id]} onDisconnect={onDisconnectMap[c.id]} />
             ))}
           </div>
         </div>
@@ -1078,7 +1110,7 @@ export function SettingsPanel() {
 
   return (
     <>
-      <div className={cn('flex h-full justify-center', compactMode ? '-m-3' : '-m-6')}>
+      <div data-testid="settings-panel" className={cn('flex h-full justify-center', compactMode ? '-m-3' : '-m-6')}>
         <div className="flex h-full w-full max-w-5xl">
           {/* ── Left sidebar nav ── */}
           <aside className="w-52 flex-shrink-0 flex flex-col py-6 px-3">
@@ -1094,6 +1126,7 @@ export function SettingsPanel() {
                 return (
                   <button
                     key={s.id}
+                    data-testid={`settings-section-${s.id}`}
                     onClick={() => setActiveSection(s.id)}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-100 group',

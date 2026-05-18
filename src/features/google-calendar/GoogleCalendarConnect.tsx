@@ -10,7 +10,7 @@ export function GoogleCalendarConnect() {
   const { connect, isLoading, error } = useGoogleCalendarAuthStore();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto text-center space-y-6 px-4">
+    <div data-testid="google-calendar-connect" className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto text-center space-y-6 px-4">
       {/* Icon */}
       <div className="p-5 rounded-3xl bg-surface-elevated border border-border-subtle">
         <GoogleCalendarIcon className="h-12 w-12 text-primary" />
@@ -51,9 +51,10 @@ export function GoogleCalendarConnect() {
 
       {/* Action */}
       <div className="w-full space-y-3">
-        {error && <p className="text-xs text-destructive text-left">{error}</p>}
+        {error && <p data-testid="google-calendar-error" className="text-xs text-destructive text-left">{error}</p>}
 
         <button
+          data-testid="google-calendar-connect-btn"
           onClick={connect}
           disabled={isLoading || !hasIdentityApi}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent text-white text-sm font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"

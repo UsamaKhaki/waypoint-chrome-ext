@@ -85,13 +85,15 @@ export function BookmarkForm({ isOpen, onClose, bookmark, defaultCategory }: Boo
       title={bookmark ? 'Edit Bookmark' : 'Add Bookmark'}
       size="md"
     >
-      <div className="space-y-4">
+      <div data-testid="bookmark-form" className="space-y-4">
         <Input
+          data-testid="bookmark-form-title"
           placeholder="Title *"
           value={form.title}
           onChange={(e) => set('title', e.target.value)}
         />
         <Input
+          data-testid="bookmark-form-url"
           placeholder="URL * (https://...)"
           value={form.url}
           onChange={(e) => set('url', e.target.value)}
@@ -160,7 +162,7 @@ export function BookmarkForm({ isOpen, onClose, bookmark, defaultCategory }: Boo
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>{bookmark ? 'Save Changes' : 'Add Bookmark'}</Button>
+          <Button data-testid="bookmark-form-save" onClick={handleSubmit}>{bookmark ? 'Save Changes' : 'Add Bookmark'}</Button>
         </div>
       </div>
     </Modal>

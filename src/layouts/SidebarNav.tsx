@@ -104,6 +104,7 @@ function NavItem({
       onMouseLeave={() => setHovered(false)}
     >
       <motion.button
+        data-testid={`nav-item-${item.id}`}
         onClick={onClick}
         whileTap={{ scale: 0.95 }}
         className={cn(
@@ -215,6 +216,7 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
 
   return (
     <nav
+      data-testid="sidebar-nav"
       className={cn(
         'flex flex-col h-full py-4 transition-all duration-200 overflow-visible',
         isCollapsed ? 'items-center px-2' : 'px-2'
@@ -272,6 +274,7 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
           </div>
 
           <button
+            data-testid="sidebar-toggle"
             onClick={toggle}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className="p-2 rounded-xl text-muted hover:text-primary hover:bg-surface-elevated transition-all flex-shrink-0"

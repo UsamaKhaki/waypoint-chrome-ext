@@ -88,7 +88,7 @@ export function SnippetsPanel() {
   ];
 
   return (
-    <div className="space-y-5">
+    <div data-testid="snippets-panel" className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -96,6 +96,7 @@ export function SnippetsPanel() {
           <p className="text-sm text-muted mt-0.5">{snippets.length} saved snippets</p>
         </div>
         <Button
+          data-testid="add-snippet-btn"
           size="sm"
           onClick={openAdd}
           title={atFreeLimit ? 'Upgrade to Pro for unlimited snippets' : undefined}
@@ -106,6 +107,7 @@ export function SnippetsPanel() {
 
       {/* Search */}
       <Input
+        data-testid="snippet-search"
         placeholder="Search snippets..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -117,6 +119,7 @@ export function SnippetsPanel() {
         {categories.map((cat) => (
           <button
             key={cat.id}
+            data-testid={`snippet-filter-${cat.id}`}
             onClick={() => setActiveCategory(cat.id)}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
               activeCategory === cat.id

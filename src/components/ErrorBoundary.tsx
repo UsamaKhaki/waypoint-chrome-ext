@@ -11,7 +11,7 @@ interface FallbackProps {
 
 function ErrorFallback({ error, resetError, eventId }: FallbackProps) {
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[200px] gap-4 p-8 text-center">
+    <div data-testid="error-boundary-fallback" className="flex flex-col items-center justify-center h-full min-h-[200px] gap-4 p-8 text-center">
       <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center">
         <AlertTriangle className="h-5 w-5 text-destructive" />
       </div>
@@ -23,6 +23,7 @@ function ErrorFallback({ error, resetError, eventId }: FallbackProps) {
         )}
       </div>
       <button
+        data-testid="error-boundary-retry"
         onClick={resetError}
         className="flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 transition-colors"
       >

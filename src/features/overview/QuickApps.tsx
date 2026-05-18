@@ -373,6 +373,7 @@ export function QuickApps() {
 
   return (
     <motion.div
+      data-testid="quick-apps"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2, delay: 0.2 }}

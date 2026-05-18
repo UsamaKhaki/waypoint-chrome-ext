@@ -107,6 +107,7 @@ function GlobalPalette() {
       >
         <div style={{ padding: '12px 16px', borderBottom: '1px solid hsl(214 12% 18%)' }}>
           <input
+            id="palette-search"
             ref={inputRef}
             value={query}
             onChange={(e) => {
@@ -142,6 +143,7 @@ function GlobalPalette() {
           {filtered.map((s, i) => (
             <div
               key={s.id}
+              data-snippet-id={s.id}
               onClick={() => copySnippet(s)}
               style={{
                 padding: '10px 16px',

@@ -27,6 +27,7 @@ export function SnippetCard({ snippet, onEdit }: SnippetCardProps) {
   return (
     <motion.div
       layout
+      data-testid={`snippet-card-${snippet.id}`}
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
@@ -78,6 +79,7 @@ export function SnippetCard({ snippet, onEdit }: SnippetCardProps) {
       {/* Actions */}
       <div className="flex items-center gap-1 px-3 pb-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
+          data-testid={`snippet-copy-${snippet.id}`}
           onClick={handleCopy}
           className={cn(
             'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all',

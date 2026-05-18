@@ -48,7 +48,7 @@ export function SessionsPanel() {
   };
 
   return (
-    <div className="space-y-5">
+    <div data-testid="sessions-panel" className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-primary">Tab Sessions</h1>
@@ -66,6 +66,7 @@ export function SessionsPanel() {
         <p className="text-sm font-medium text-secondary">Save current window</p>
         <div className="flex items-center gap-2">
           <Input
+            data-testid="session-name-input"
             placeholder="Session name (optional)"
             value={saveName}
             onChange={(e) => setSaveName(e.target.value)}
@@ -74,6 +75,7 @@ export function SessionsPanel() {
             className="flex-1"
           />
           <Button
+            data-testid="session-save-btn"
             onClick={handleSave}
             disabled={isSaving || isLoading}
             title={atFreeLimit ? 'Upgrade to Pro for unlimited sessions' : undefined}
@@ -101,7 +103,7 @@ export function SessionsPanel() {
       ) : (
         <div className="space-y-3">
           {sessions.map((session) => (
-            <div key={session.id} className="card p-4 space-y-2">
+            <div key={session.id} data-testid={`session-card-${session.id}`} className="card p-4 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-primary truncate">{session.name}</p>
@@ -116,6 +118,7 @@ export function SessionsPanel() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Button
+                    data-testid={`session-restore-${session.id}`}
                     size="sm"
                     variant="outline"
                     onClick={() => restoreSession(session.id)}
@@ -125,6 +128,7 @@ export function SessionsPanel() {
                     Restore
                   </Button>
                   <Button
+                    data-testid={`session-delete-${session.id}`}
                     size="sm"
                     variant={confirmDelete === session.id ? 'destructive' : 'ghost'}
                     onClick={() => handleDelete(session.id)}

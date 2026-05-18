@@ -77,14 +77,14 @@ export function BookmarksPanel() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div data-testid="bookmarks-panel" className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-primary">Bookmarks</h1>
           <p className="text-sm text-muted mt-0.5">{bookmarks.length} saved links</p>
         </div>
-        <Button onClick={() => openAdd()} size="sm">
+        <Button data-testid="add-bookmark-btn" onClick={() => openAdd()} size="sm">
           <Plus className="h-3.5 w-3.5" />
           Add Bookmark
         </Button>
@@ -94,6 +94,7 @@ export function BookmarksPanel() {
       <div className="flex items-center gap-3">
         <div className="flex-1">
           <Input
+            data-testid="bookmark-search"
             placeholder="Search bookmarks..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -106,6 +107,7 @@ export function BookmarksPanel() {
             return (
               <button
                 key={tab.id}
+                data-testid={`bookmark-filter-${tab.id}`}
                 onClick={() => setFilterTab(tab.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                   filterTab === tab.id

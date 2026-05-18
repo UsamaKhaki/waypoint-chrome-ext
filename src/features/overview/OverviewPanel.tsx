@@ -284,6 +284,7 @@ function LeftSection({
             return (
               <motion.button
                 key={card.id}
+                data-testid={`overview-link-${card.id}`}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: i * 0.04 }}
@@ -424,7 +425,7 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
   const leftSections = sections.filter((s) => s.visible);
 
   return (
-    <div className="grid grid-cols-12 gap-5 items-start">
+    <div data-testid="overview-panel" className="grid grid-cols-12 gap-5 items-start">
       {/* ── Left: 9 cols ─────────────────────────────────────────────── */}
       <div className="col-span-9 space-y-6">
         {/* Greeting + edit button */}

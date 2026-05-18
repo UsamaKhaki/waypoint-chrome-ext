@@ -90,6 +90,8 @@ function ResultRow({
   return (
     <button
       ref={ref}
+      data-testid={`palette-result-${item.kind}-${item.data.id}`}
+      aria-selected={isSelected}
       onClick={onSelect}
       onMouseEnter={onHover}
       className={cn(
@@ -120,7 +122,7 @@ function SectionLabel({ icon: Icon, label }: { icon: React.ElementType; label: s
 
 // ── Main Component ────────────────────────────────────────────────────────
 export function CommandPalette() {
-  const { isOpen, query, commands, recentCommands, open, close, setQuery, executeCommand } =
+  const { isOpen, query, commands, recentCommands, open, close, toggle, setQuery, executeCommand } =
     useCommandPaletteStore();
   const bookmarks = useBookmarksStore((s) => s.bookmarks);
   const environments = useEnvironmentsStore((s) => s.environments);
@@ -134,12 +136,12 @@ export function CommandPalette() {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        open();
+        toggle();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [open]);
+  }, [toggle]);
 
   // ── Focus input on open ────────────────────────────────────────────────
   useEffect(() => {
@@ -272,6 +274,7 @@ export function CommandPalette() {
 
           {/* Panel */}
           <motion.div
+            data-testid="command-palette"
             initial={{ opacity: 0, y: -12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
@@ -283,6 +286,7 @@ export function CommandPalette() {
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border-subtle">
               <Search className="h-4 w-4 text-muted flex-shrink-0" />
               <input
+                data-testid="command-palette-input"
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -307,9 +311,9 @@ export function CommandPalette() {
             </div>
 
             {/* Results */}
-            <div className="max-h-[420px] overflow-y-auto py-2 px-2">
+            <div data-testid="command-palette-results" className="max-h-[420px] overflow-y-auto py-2 px-2">
               {isEmpty ? (
-                <div className="flex flex-col items-center justify-center py-10 text-muted">
+                <div data-testid="command-palette-empty" className="flex flex-col items-center justify-center py-10 text-muted">
                   <Search className="h-8 w-8 mb-3 opacity-40" />
                   <p className="text-sm">No results found</p>
                   <p className="text-xs mt-1 opacity-70">Try a different search term</p>

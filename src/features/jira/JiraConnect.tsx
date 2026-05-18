@@ -20,7 +20,7 @@ export function JiraConnect() {
   const canSubmit = domain.trim() && email.trim() && apiToken.trim();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto text-center space-y-6 px-4">
+    <div data-testid="jira-connect" className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto text-center space-y-6 px-4">
       {/* Icon */}
       <div className="p-5 rounded-3xl bg-surface-elevated border border-border-subtle">
         <JiraIcon className="h-12 w-12 text-primary" />
@@ -40,6 +40,7 @@ export function JiraConnect() {
         <div className="relative">
           <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
           <input
+            data-testid="jira-domain-input"
             type="text"
             placeholder="your-company (from your-company.atlassian.net)"
             value={domain}
@@ -52,6 +53,7 @@ export function JiraConnect() {
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
           <input
+            data-testid="jira-email-input"
             type="email"
             placeholder="your-email@company.com"
             value={email}
@@ -63,6 +65,7 @@ export function JiraConnect() {
         <div className="relative">
           <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
           <input
+            data-testid="jira-token-input"
             type="password"
             placeholder="Paste your API token"
             value={apiToken}
@@ -72,9 +75,10 @@ export function JiraConnect() {
           />
         </div>
 
-        {error && <p className="text-xs text-destructive text-left">{error}</p>}
+        {error && <p data-testid="jira-error" className="text-xs text-destructive text-left">{error}</p>}
 
         <button
+          data-testid="jira-connect-btn"
           onClick={handleConnect}
           disabled={!canSubmit || isLoading}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent text-white text-sm font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"

@@ -18,7 +18,7 @@ export function NotionConnect() {
   const canSubmit = token.trim().length > 0;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto text-center space-y-6 px-4">
+    <div data-testid="notion-connect" className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto text-center space-y-6 px-4">
       {/* Icon */}
       <div className="p-5 rounded-3xl bg-surface-elevated border border-border-subtle">
         <NotionIcon className="h-12 w-12" />
@@ -37,6 +37,7 @@ export function NotionConnect() {
         <div className="relative">
           <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
           <input
+            data-testid="notion-input"
             type="password"
             placeholder="Paste your Internal Integration Token (secret_…)"
             value={token}
@@ -47,9 +48,10 @@ export function NotionConnect() {
           />
         </div>
 
-        {error && <p className="text-xs text-destructive text-left">{error}</p>}
+        {error && <p data-testid="notion-error" className="text-xs text-destructive text-left">{error}</p>}
 
         <button
+          data-testid="notion-connect-btn"
           onClick={handleConnect}
           disabled={!canSubmit || isLoading}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent text-white text-sm font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"

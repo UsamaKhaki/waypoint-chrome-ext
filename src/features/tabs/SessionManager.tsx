@@ -21,7 +21,7 @@ export function SessionManager() {
     <div>
       <div className="flex items-center justify-between mb-3">
         <p className="section-title">Saved Sessions</p>
-        <Button variant="ghost" size="sm" onClick={() => setIsSaving(true)}>
+        <Button data-testid="tabs-save-session-btn" variant="ghost" size="sm" onClick={() => setIsSaving(true)}>
           <Save className="h-3.5 w-3.5" /> Save Current
         </Button>
       </div>
