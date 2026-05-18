@@ -222,4 +222,5 @@ export type StorageKey =
   | 'jiraCredentials'
   | 'slackToken'
   | 'notionToken'
-  | 'googleCalendarConnected';
+  | 'googleCalendarConnected'
+  | 'activeSection';

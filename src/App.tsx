@@ -71,6 +71,7 @@ export default function App() {
     prevSection.current = s;
     sectionEnteredAt.current = Date.now();
     setActiveSection(s as Section);
+    storage.set('activeSection', s);
   }, []);
   useCommandRegistration({ onNavigate: handleNavigate });
   useKeyboardShortcuts(handleNavigate);
@@ -105,12 +106,18 @@ export default function App() {
       loadGoogleProfile(),
     ])
       .then(async () => {
-        const onboardingCompleted = await storage.get<boolean>('onboardingCompleted');
+        const [onboardingCompleted, savedSection] = await Promise.all([
+          storage.get<boolean>('onboardingCompleted'),
+          storage.get<Section>('activeSection'),
+        ]);
         if (!onboardingCompleted) {
           setShowOnboarding(true);
           analytics.onboardingStarted();
         }
-        analytics.sectionViewed('overview');
+        const section = savedSection ?? 'overview';
+        setActiveSection(section);
+        prevSection.current = section;
+        analytics.sectionViewed(section);
       })
       .catch((err: Error) => {
         Sentry.captureException(err, { tags: { phase: 'app_boot' } });
@@ -170,7 +177,7 @@ export default function App() {
         sidebar={
           <SidebarNav
             activeSection={activeSection}
-            onSectionChange={(s) => setActiveSection(s as Section)}
+            onSectionChange={(s) => handleNavigate(s)}
           />
         }
         header={<TopBar />}

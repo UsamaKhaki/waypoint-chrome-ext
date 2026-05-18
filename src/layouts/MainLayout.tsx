@@ -30,11 +30,12 @@ export function MainLayout({ sidebar, header, children, className }: MainLayoutP
             {header}
           </header>
         )}
-        <main className={cn('flex-1 overflow-y-auto p-6', className)}>
+        <main className={cn('flex-1 overflow-y-auto p-6 flex flex-col', className)}>
           <motion.div
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
+            className="flex-1 min-h-0"
           >
             {children}
           </motion.div>

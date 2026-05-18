@@ -68,8 +68,9 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
         .catch(() => {});
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'unknown';
+      const isPatLifetime = reason.includes('PAT lifetime') || reason.includes('forbids access');
       set({
-        error: 'Invalid token or network error. Check your PAT and try again.',
+        error: isPatLifetime ? reason : 'Invalid token or network error. Check your PAT and try again.',
         isLoading: false,
       });
       analytics.integrationConnectFailed('github', reason);
@@ -119,7 +120,10 @@ export const useGitHubAuthStore = create<GitHubAuthState>((set, get) => ({
 
       // Surface an error only if the core user fetch fails
       if (userRes.status === 'rejected') {
-        partial.error = 'Failed to fetch GitHub data. Check your connection.';
+        const msg = userRes.reason instanceof Error ? userRes.reason.message : '';
+        partial.error = msg.includes('PAT lifetime') || msg.includes('forbids access')
+          ? msg
+          : 'Failed to fetch GitHub data. Check your connection.';
       }
 
       set(partial);

@@ -7,6 +7,8 @@ import {
   MessageSquare,
   Pencil,
   ArrowRight,
+  CheckCircle2,
+  MessageCircleWarning,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGitHubAuthStore } from '@/store/githubAuth.store';
@@ -107,7 +109,12 @@ export function OpenPRs({ onNavigate }: OpenPRsProps) {
             <button
               key={pr.id}
               onClick={() => chrome.tabs.create({ url: pr.html_url })}
-              className="w-full flex items-start gap-3 p-3 rounded-xl border border-border-subtle bg-surface hover:bg-surface-elevated hover:border-border transition-all duration-150 text-left group"
+              className={cn(
+                'w-full flex items-start gap-3 p-3 rounded-xl border bg-surface hover:bg-surface-elevated transition-all duration-150 text-left group',
+                !pr.draft && pr.approvals && pr.approvals > 0
+                  ? 'border-success/30 hover:border-success/50'
+                  : 'border-border-subtle hover:border-border'
+              )}
             >
               {/* State icon */}
               <div className="flex-shrink-0 mt-0.5">
@@ -139,6 +146,18 @@ export function OpenPRs({ onNavigate }: OpenPRsProps) {
                   {pr.draft && (
                     <span className="px-1.5 py-0.5 rounded-full bg-surface-elevated text-muted text-xs">
                       Draft
+                    </span>
+                  )}
+                  {!pr.draft && pr.approvals !== undefined && pr.approvals > 0 && (
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                      <CheckCircle2 className="h-3 w-3" />
+                      {pr.approvals === 1 ? '1 approval' : `${pr.approvals} approvals`}
+                    </span>
+                  )}
+                  {pr.review_comments > 0 && (
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
+                      <MessageCircleWarning className="h-3 w-3" />
+                      {pr.review_comments === 1 ? '1 unresolved' : `${pr.review_comments} unresolved`}
                     </span>
                   )}
                 </div>

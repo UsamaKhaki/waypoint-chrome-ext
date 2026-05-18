@@ -24,6 +24,7 @@ export interface GitHubPR {
   review_comments: number;
   comments: number;
   mergeable_state?: string;
+  approvals?: number;
 }
 
 export interface GitHubIssue {
@@ -73,7 +74,14 @@ export class GitHubApiService {
       },
     });
     if (!res.ok) {
-      const error = new Error(`GitHub API error: ${res.status} ${res.statusText}`);
+      let message = `GitHub API error: ${res.status} ${res.statusText}`;
+      try {
+        const body = await res.json() as { message?: string };
+        if (body.message?.includes('forbids access via a personal access tokens')) {
+          message = 'Your PAT lifetime exceeds the org limit (60 days). Regenerate your token with a shorter expiry at github.com/settings/tokens.';
+        }
+      } catch { /* ignore parse errors */ }
+      const error = new Error(message);
       captureApiError(error, 'github', { path, status: res.status });
       throw error;
     }
@@ -88,7 +96,30 @@ export class GitHubApiService {
     const data = await this.fetch<{ items: GitHubPR[] }>(
       '/search/issues?q=is:open+is:pr+author:@me&sort=updated&per_page=20'
     );
-    return data.items.map((pr) => ({ ...pr, repoName: repoName(pr.repository_url) }));
+    const prs = data.items.map((pr) => ({ ...pr, repoName: repoName(pr.repository_url) }));
+    const withApprovals = await Promise.all(
+      prs.map(async (pr) => {
+        const approvals = await this.getPRApprovalCount(pr.repoName!, pr.number);
+        return { ...pr, approvals };
+      })
+    );
+    return withApprovals;
+  }
+
+  private async getPRApprovalCount(repoFullName: string, prNumber: number): Promise<number> {
+    try {
+      const reviews = await this.fetch<{ state: string; user: { login: string } }[]>(
+        `/repos/${repoFullName}/pulls/${prNumber}/reviews`
+      );
+      // Count unique approved reviewers (latest review per user)
+      const latestPerUser = new Map<string, string>();
+      for (const review of reviews) {
+        latestPerUser.set(review.user.login, review.state);
+      }
+      return [...latestPerUser.values()].filter((s) => s === 'APPROVED').length;
+    } catch {
+      return 0;
+    }
   }
 
   async getAssignedIssues(): Promise<GitHubIssue[]> {
