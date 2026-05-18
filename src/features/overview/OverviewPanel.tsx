@@ -1,18 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import {
-  Bookmark as BookmarkIcon,
-  Globe,
-  GitBranch,
-  Target,
-  Layers,
-  Command,
-  SlidersHorizontal,
-  Plus,
-  CheckCircle2,
-  Circle,
-  Trash2,
-  Flag,
-} from 'lucide-react';
+import { Command, SlidersHorizontal, Plus, CheckCircle2, Circle, Trash2, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBookmarksStore } from '@/store/bookmarks.store';
 import { useCommandPaletteStore } from '@/store/commandPalette.store';
@@ -29,49 +16,10 @@ import { OpenPRs } from './OpenPRs';
 import { CicdOverview } from './CicdOverview';
 import { IntegrationsWidget } from './IntegrationsWidget';
 import { SlackOverview } from './SlackOverview';
-
-const SECTION_CARDS = [
-  {
-    id: 'bookmarks',
-    label: 'Bookmarks',
-    icon: BookmarkIcon,
-    shortcut: '⌘2',
-    color: 'text-violet-400',
-    bg: 'bg-violet-500/10',
-  },
-  {
-    id: 'environments',
-    label: 'Environments',
-    icon: Globe,
-    shortcut: '⌘3',
-    color: 'text-env-stage',
-    bg: 'bg-orange-500/10',
-  },
-  {
-    id: 'github',
-    label: 'GitHub Hub',
-    icon: GitBranch,
-    shortcut: '⌘4',
-    color: 'text-secondary',
-    bg: 'bg-slate-500/10',
-  },
-  {
-    id: 'focus',
-    label: 'Daily Focus',
-    icon: Target,
-    shortcut: '⌘5',
-    color: 'text-success',
-    bg: 'bg-emerald-500/10',
-  },
-  {
-    id: 'tabs',
-    label: 'Tab Manager',
-    icon: Layers,
-    shortcut: '⌘6',
-    color: 'text-accent',
-    bg: 'bg-indigo-500/10',
-  },
-];
+import { LinearOverview } from './LinearOverview';
+import { JiraOverview } from './JiraOverview';
+import { NotionOverview } from './NotionOverview';
+import { CalendarOverview } from './CalendarOverview';
 
 interface OverviewPanelProps {
   onNavigate: (section: string) => void;
@@ -269,41 +217,6 @@ function LeftSection({
         </motion.div>
       );
 
-    case 'nav-cards':
-      return (
-        <motion.div
-          key="nav-cards"
-          layout
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="grid grid-cols-2 lg:grid-cols-3 gap-3"
-        >
-          {SECTION_CARDS.map((card, i) => {
-            const Icon = card.icon;
-            return (
-              <motion.button
-                key={card.id}
-                data-testid={`overview-link-${card.id}`}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: i * 0.04 }}
-                onClick={() => onNavigate(card.id)}
-                className="card-hover flex items-center gap-3 p-3.5 text-left"
-              >
-                <div className={cn('p-2 rounded-xl flex-shrink-0', card.bg)}>
-                  <Icon className={cn('h-4 w-4', card.color)} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-primary truncate">{card.label}</div>
-                </div>
-                <kbd className="kbd hidden lg:inline-flex text-xs">{card.shortcut}</kbd>
-              </motion.button>
-            );
-          })}
-        </motion.div>
-      );
-
     case 'github-prs':
       return (
         <motion.div
@@ -327,6 +240,58 @@ function LeftSection({
           exit={{ opacity: 0 }}
         >
           <CicdOverview onNavigate={onNavigate} />
+        </motion.div>
+      );
+
+    case 'linear-issues':
+      return (
+        <motion.div
+          key="linear-issues"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <LinearOverview onNavigate={onNavigate} />
+        </motion.div>
+      );
+
+    case 'jira-issues':
+      return (
+        <motion.div
+          key="jira-issues"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <JiraOverview onNavigate={onNavigate} />
+        </motion.div>
+      );
+
+    case 'notion-pages':
+      return (
+        <motion.div
+          key="notion-pages"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <NotionOverview onNavigate={onNavigate} />
+        </motion.div>
+      );
+
+    case 'calendar-events':
+      return (
+        <motion.div
+          key="calendar-events"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <CalendarOverview onNavigate={onNavigate} />
         </motion.div>
       );
 

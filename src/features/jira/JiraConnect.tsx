@@ -54,10 +54,10 @@ const STEPS = [
     number: 3,
     icon: Mail,
     title: 'Have Your Email Ready',
-    description: 'You\'ll need the email linked to your Atlassian account.',
+    description: "You'll need the email linked to your Atlassian account.",
     details: [
       'This is the email you use to log in to Jira',
-      'It\'s used alongside the API token for authentication',
+      "It's used alongside the API token for authentication",
     ],
     tip: null,
     tipType: 'info' as const,
@@ -79,10 +79,10 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  { icon: ListTodo,     label: 'Assigned Issues',   desc: 'All tickets assigned to you' },
-  { icon: Kanban,       label: 'Sprint Board',      desc: 'Current sprint progress' },
-  { icon: RefreshCw,    label: 'Recent Activity',   desc: 'Recently updated tickets' },
-  { icon: Filter,       label: 'Status Tracking',   desc: 'In progress, done & blocked' },
+  { icon: ListTodo, label: 'Assigned Issues', desc: 'All tickets assigned to you' },
+  { icon: Kanban, label: 'Sprint Board', desc: 'Current sprint progress' },
+  { icon: RefreshCw, label: 'Recent Activity', desc: 'Recently updated tickets' },
+  { icon: Filter, label: 'Status Tracking', desc: 'In progress, done & blocked' },
 ];
 
 export function JiraConnect() {
@@ -94,7 +94,10 @@ export function JiraConnect() {
   const [expandedStep, setExpandedStep] = useState<number | null>(1);
 
   const handleConnect = () => {
-    const d = domain.trim().replace(/\.atlassian\.net.*$/, '').replace(/^https?:\/\//, '');
+    const d = domain
+      .trim()
+      .replace(/\.atlassian\.net.*$/, '')
+      .replace(/^https?:\/\//, '');
     if (d && email.trim() && apiToken.trim()) {
       connect(d, email.trim(), apiToken.trim());
     }
@@ -103,10 +106,7 @@ export function JiraConnect() {
   const canSubmit = domain.trim() && email.trim() && apiToken.trim();
 
   return (
-    <div
-      data-testid="jira-connect"
-      className="flex h-full overflow-hidden"
-    >
+    <div data-testid="jira-connect" className="flex h-full overflow-hidden">
       {/* ── Left panel ── */}
       <div className="w-64 flex-shrink-0 border-r border-border-subtle flex flex-col">
         <div className="flex flex-col items-center text-center px-6 pt-8 pb-6">
@@ -125,15 +125,20 @@ export function JiraConnect() {
         <div className="mx-6 border-t border-border-subtle" />
 
         <div className="flex flex-col gap-1 px-4 py-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted px-2 mb-2">What you get</p>
+          <p className="text-[0.67rem] font-semibold uppercase tracking-widest text-muted px-2 mb-2">
+            What you get
+          </p>
           {FEATURES.map(({ icon: Icon, label, desc }) => (
-            <div key={label} className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-surface-elevated transition-colors duration-150">
+            <div
+              key={label}
+              className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-surface-elevated transition-colors duration-150"
+            >
               <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
                 <Icon className="h-3.5 w-3.5 text-accent" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-secondary leading-none">{label}</p>
-                <p className="text-[11px] text-muted mt-0.5 leading-snug">{desc}</p>
+                <p className="text-[0.73rem] text-muted mt-0.5 leading-snug">{desc}</p>
               </div>
             </div>
           ))}
@@ -141,7 +146,11 @@ export function JiraConnect() {
 
         <div className="mt-auto px-4 pb-5">
           <button
-            onClick={() => chrome.tabs.create({ url: 'https://id.atlassian.com/manage-profile/security/api-tokens' })}
+            onClick={() =>
+              chrome.tabs.create({
+                url: 'https://id.atlassian.com/manage-profile/security/api-tokens',
+              })
+            }
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-accent/20 text-accent text-xs font-medium hover:bg-accent/8 hover:border-accent/35 transition-all duration-150"
           >
             <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
@@ -154,7 +163,9 @@ export function JiraConnect() {
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         <div className="px-6 pt-6 pb-4 border-b border-border-subtle flex-shrink-0">
           <h3 className="text-sm font-semibold text-primary">Setup Guide</h3>
-          <p className="text-xs text-muted mt-0.5">Follow these 4 steps to connect your Jira Cloud account</p>
+          <p className="text-xs text-muted mt-0.5">
+            Follow these 4 steps to connect your Jira Cloud account
+          </p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
@@ -168,25 +179,49 @@ export function JiraConnect() {
                 key={step.number}
                 className={cn(
                   'rounded-xl border transition-all duration-200',
-                  isOpen ? 'border-accent/30 bg-surface-elevated' : 'border-border-subtle bg-transparent hover:bg-surface-elevated/40'
+                  isOpen
+                    ? 'border-accent/30 bg-surface-elevated'
+                    : 'border-border-subtle bg-transparent hover:bg-surface-elevated/40'
                 )}
               >
                 <button
                   onClick={() => setExpandedStep(isOpen ? null : step.number)}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left"
                 >
-                  <div className={cn(
-                    'w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-bold transition-all duration-200',
-                    isOpen ? 'bg-accent text-white' : isDone ? 'bg-accent/15 text-accent' : 'bg-surface-elevated text-muted border border-border'
-                  )}>
+                  <div
+                    className={cn(
+                      'w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[0.73rem] font-bold transition-all duration-200',
+                      isOpen
+                        ? 'bg-accent text-white'
+                        : isDone
+                          ? 'bg-accent/15 text-accent'
+                          : 'bg-surface-elevated text-muted border border-border'
+                    )}
+                  >
                     {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : step.number}
                   </div>
-                  <Icon className={cn('h-3.5 w-3.5 flex-shrink-0 transition-colors', isOpen ? 'text-accent' : 'text-muted')} />
+                  <Icon
+                    className={cn(
+                      'h-3.5 w-3.5 flex-shrink-0 transition-colors',
+                      isOpen ? 'text-accent' : 'text-muted'
+                    )}
+                  />
                   <div className="flex-1 min-w-0">
-                    <span className={cn('text-xs font-semibold block', isOpen ? 'text-primary' : 'text-secondary')}>{step.title}</span>
-                    <span className="text-[11px] text-muted">{step.description}</span>
+                    <span
+                      className={cn(
+                        'text-xs font-semibold block',
+                        isOpen ? 'text-primary' : 'text-secondary'
+                      )}
+                    >
+                      {step.title}
+                    </span>
+                    <span className="text-[0.73rem] text-muted">{step.description}</span>
                   </div>
-                  {isOpen ? <ChevronUp className="h-3.5 w-3.5 text-muted flex-shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 text-muted flex-shrink-0" />}
+                  {isOpen ? (
+                    <ChevronUp className="h-3.5 w-3.5 text-muted flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted flex-shrink-0" />
+                  )}
                 </button>
 
                 <AnimatePresence initial={false}>
@@ -204,14 +239,16 @@ export function JiraConnect() {
                           {step.details.map((detail, i) => (
                             <li key={i} className="flex items-start gap-3">
                               <div className="w-4 h-4 rounded-full bg-accent/10 border border-accent/20 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                <span className="text-[9px] font-bold text-accent">{i + 1}</span>
+                                <span className="text-[0.6rem] font-bold text-accent">{i + 1}</span>
                               </div>
-                              <span className="text-xs text-secondary leading-relaxed">{detail}</span>
+                              <span className="text-xs text-secondary leading-relaxed">
+                                {detail}
+                              </span>
                             </li>
                           ))}
                         </ul>
                         {step.tip && (
-                          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-surface border border-border-subtle text-muted text-[11px] leading-relaxed">
+                          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-surface border border-border-subtle text-muted text-[0.73rem] leading-relaxed">
                             <span>{step.tip}</span>
                           </div>
                         )}
@@ -228,7 +265,9 @@ export function JiraConnect() {
         <div className="px-6 py-4 border-t border-border-subtle flex-shrink-0 space-y-2.5">
           <div className="flex items-center justify-between">
             <label className="text-xs font-semibold text-secondary">Your credentials</label>
-            <span className="text-[10px] text-muted">Stored locally · never sent to a server</span>
+            <span className="text-[0.67rem] text-muted">
+              Stored locally · never sent to a server
+            </span>
           </div>
 
           {/* Domain */}
@@ -270,7 +309,11 @@ export function JiraConnect() {
               onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
               className="w-full rounded-xl bg-surface-elevated border border-border-subtle text-primary text-xs pl-9 pr-10 py-2.5 outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all font-mono placeholder:text-muted/40"
             />
-            <button onClick={() => setShowToken(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors" tabIndex={-1}>
+            <button
+              onClick={() => setShowToken((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors"
+              tabIndex={-1}
+            >
               {showToken ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
             </button>
           </div>

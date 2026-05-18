@@ -18,9 +18,11 @@ const FEATURE_LABEL: Record<ProFeature, string> = {
   [PRO_FEATURES.SNIPPET_VARIABLES]: 'Snippet Variables',
   [PRO_FEATURES.CLOUD_SYNC]: 'Cloud Sync',
   [PRO_FEATURES.LINEAR_WIDGET]: 'Linear & Jira Widget',
+  [PRO_FEATURES.CUSTOM_WORKSPACES]: 'Custom Workspaces',
 };
 
 const COMPARISON_ROWS = [
+  { label: 'Custom workspaces', pro: true },
   { label: 'Unlimited snippets', pro: true },
   { label: 'Snippet variables', pro: true },
   { label: 'Cloud sync across devices', pro: true },

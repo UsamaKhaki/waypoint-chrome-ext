@@ -19,7 +19,14 @@ import {
   Plug,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { GitHubIcon, LinearIcon, JiraIcon, SlackIcon, NotionIcon, GoogleCalendarIcon } from '@/components/icons/ConnectorIcons';
+import {
+  GitHubIcon,
+  LinearIcon,
+  JiraIcon,
+  SlackIcon,
+  NotionIcon,
+  GoogleCalendarIcon,
+} from '@/components/icons/ConnectorIcons';
 import { useGoogleProfileStore } from '@/store/googleProfile.store';
 import { useGitHubAuthStore } from '@/store/githubAuth.store';
 import { useLinearAuthStore } from '@/store/linearAuth.store';
@@ -760,7 +767,6 @@ function DataSection() {
 }
 
 function AboutSection({ onBugReport }: { onBugReport: () => void }) {
-  const techStack = ['React 18', 'TypeScript', 'Vite', 'TailwindCSS', 'Zustand', 'Framer Motion'];
   return (
     <>
       <SectionHeader title="About Waypoint" description="Version info, tech stack, and support." />
@@ -777,21 +783,6 @@ function AboutSection({ onBugReport }: { onBugReport: () => void }) {
           <Badge variant="secondary" className="ml-auto flex-shrink-0">
             Stable
           </Badge>
-        </div>
-
-        {/* Tech stack */}
-        <div>
-          <p className="text-xs font-medium text-muted mb-2 uppercase tracking-wider">Built with</p>
-          <div className="flex flex-wrap gap-2">
-            {techStack.map((t) => (
-              <span
-                key={t}
-                className="px-2.5 py-1 rounded-lg bg-surface border border-border-subtle text-xs text-secondary font-medium"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* Links */}
@@ -1038,7 +1029,12 @@ function ConnectorsSection({
           <p className="text-xs font-medium text-muted mb-3 uppercase tracking-wider">Available</p>
           <div className="rounded-xl border border-border-subtle overflow-hidden">
             {active.map((c) => (
-              <ConnectorCard key={c.id} connector={c} onConnect={onConnectMap[c.id]} onDisconnect={onDisconnectMap[c.id]} />
+              <ConnectorCard
+                key={c.id}
+                connector={c}
+                onConnect={onConnectMap[c.id]}
+                onDisconnect={onDisconnectMap[c.id]}
+              />
             ))}
           </div>
         </div>
@@ -1110,7 +1106,10 @@ export function SettingsPanel() {
 
   return (
     <>
-      <div data-testid="settings-panel" className={cn('flex h-full justify-center', compactMode ? '-m-3' : '-m-6')}>
+      <div
+        data-testid="settings-panel"
+        className={cn('flex h-full justify-center', compactMode ? '-m-3' : '-m-6')}
+      >
         <div className="flex h-full w-full max-w-5xl">
           {/* ── Left sidebar nav ── */}
           <aside className="w-52 flex-shrink-0 flex flex-col py-6 px-3">

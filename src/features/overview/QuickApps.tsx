@@ -5,6 +5,165 @@ import { useQuickAppsStore, type QuickApp } from '@/store/quickApps.store';
 import { cn } from '@/lib/utils';
 import { isValidUrl } from '@/utils';
 
+// ── Brand logos ──────────────────────────────────────────────────────────────
+// We render the brand's actual website favicon (via Google's favicon service)
+// rather than depending on Simple Icons, which has removed many big corporate
+// logos (Microsoft, Amazon, LinkedIn, etc.) due to trademark policy.
+//
+// The selected brand is stored in QuickApp.emoji as `brand:<slug>` so the
+// storage shape is unchanged. The slug maps to a canonical domain below.
+const BRAND_PREFIX = 'brand:';
+
+interface Brand {
+  slug: string;
+  name: string;
+  domain: string;
+}
+
+const BRANDS: Brand[] = [
+  // Code & repos
+  { slug: 'github', name: 'GitHub', domain: 'github.com' },
+  { slug: 'gitlab', name: 'GitLab', domain: 'gitlab.com' },
+  { slug: 'bitbucket', name: 'Bitbucket', domain: 'bitbucket.org' },
+  { slug: 'sourcegraph', name: 'Sourcegraph', domain: 'sourcegraph.com' },
+  // Communication
+  { slug: 'slack', name: 'Slack', domain: 'slack.com' },
+  { slug: 'discord', name: 'Discord', domain: 'discord.com' },
+  { slug: 'telegram', name: 'Telegram', domain: 'telegram.org' },
+  { slug: 'whatsapp', name: 'WhatsApp', domain: 'whatsapp.com' },
+  { slug: 'signal', name: 'Signal', domain: 'signal.org' },
+  { slug: 'zoom', name: 'Zoom', domain: 'zoom.us' },
+  { slug: 'googlemeet', name: 'Google Meet', domain: 'meet.google.com' },
+  { slug: 'msteams', name: 'MS Teams', domain: 'teams.microsoft.com' },
+  // Productivity
+  { slug: 'notion', name: 'Notion', domain: 'notion.so' },
+  { slug: 'linear', name: 'Linear', domain: 'linear.app' },
+  { slug: 'jira', name: 'Jira', domain: 'atlassian.com' },
+  { slug: 'confluence', name: 'Confluence', domain: 'confluence.atlassian.com' },
+  { slug: 'trello', name: 'Trello', domain: 'trello.com' },
+  { slug: 'asana', name: 'Asana', domain: 'asana.com' },
+  { slug: 'clickup', name: 'ClickUp', domain: 'clickup.com' },
+  { slug: 'monday', name: 'Monday', domain: 'monday.com' },
+  // Design
+  { slug: 'figma', name: 'Figma', domain: 'figma.com' },
+  { slug: 'miro', name: 'Miro', domain: 'miro.com' },
+  { slug: 'canva', name: 'Canva', domain: 'canva.com' },
+  { slug: 'framer', name: 'Framer', domain: 'framer.com' },
+  { slug: 'adobe', name: 'Adobe', domain: 'adobe.com' },
+  // Google
+  { slug: 'google', name: 'Google', domain: 'google.com' },
+  { slug: 'gmail', name: 'Gmail', domain: 'mail.google.com' },
+  { slug: 'gdrive', name: 'Drive', domain: 'drive.google.com' },
+  { slug: 'gcalendar', name: 'Calendar', domain: 'calendar.google.com' },
+  { slug: 'gmaps', name: 'Maps', domain: 'maps.google.com' },
+  { slug: 'gdocs', name: 'Docs', domain: 'docs.google.com' },
+  { slug: 'gsheets', name: 'Sheets', domain: 'sheets.google.com' },
+  { slug: 'youtube', name: 'YouTube', domain: 'youtube.com' },
+  // Microsoft
+  { slug: 'microsoft', name: 'Microsoft', domain: 'microsoft.com' },
+  { slug: 'outlook', name: 'Outlook', domain: 'outlook.com' },
+  { slug: 'onedrive', name: 'OneDrive', domain: 'onedrive.live.com' },
+  { slug: 'excel', name: 'Excel', domain: 'office.com' },
+  { slug: 'azure', name: 'Azure', domain: 'azure.microsoft.com' },
+  // Social
+  { slug: 'meta', name: 'Meta', domain: 'meta.com' },
+  { slug: 'facebook', name: 'Facebook', domain: 'facebook.com' },
+  { slug: 'instagram', name: 'Instagram', domain: 'instagram.com' },
+  { slug: 'threads', name: 'Threads', domain: 'threads.net' },
+  { slug: 'x', name: 'X / Twitter', domain: 'x.com' },
+  { slug: 'linkedin', name: 'LinkedIn', domain: 'linkedin.com' },
+  { slug: 'tiktok', name: 'TikTok', domain: 'tiktok.com' },
+  { slug: 'snapchat', name: 'Snapchat', domain: 'snapchat.com' },
+  { slug: 'pinterest', name: 'Pinterest', domain: 'pinterest.com' },
+  { slug: 'reddit', name: 'Reddit', domain: 'reddit.com' },
+  // Cloud / infra
+  { slug: 'aws', name: 'AWS', domain: 'aws.amazon.com' },
+  { slug: 'gcp', name: 'GCP', domain: 'cloud.google.com' },
+  { slug: 'vercel', name: 'Vercel', domain: 'vercel.com' },
+  { slug: 'netlify', name: 'Netlify', domain: 'netlify.com' },
+  { slug: 'cloudflare', name: 'Cloudflare', domain: 'cloudflare.com' },
+  { slug: 'digitalocean', name: 'DigitalOcean', domain: 'digitalocean.com' },
+  { slug: 'heroku', name: 'Heroku', domain: 'heroku.com' },
+  { slug: 'render', name: 'Render', domain: 'render.com' },
+  { slug: 'fly', name: 'Fly.io', domain: 'fly.io' },
+  { slug: 'docker', name: 'Docker', domain: 'docker.com' },
+  { slug: 'kubernetes', name: 'Kubernetes', domain: 'kubernetes.io' },
+  // Languages & frameworks
+  { slug: 'react', name: 'React', domain: 'react.dev' },
+  { slug: 'nextjs', name: 'Next.js', domain: 'nextjs.org' },
+  { slug: 'vue', name: 'Vue', domain: 'vuejs.org' },
+  { slug: 'svelte', name: 'Svelte', domain: 'svelte.dev' },
+  { slug: 'nodejs', name: 'Node.js', domain: 'nodejs.org' },
+  { slug: 'typescript', name: 'TypeScript', domain: 'typescriptlang.org' },
+  { slug: 'python', name: 'Python', domain: 'python.org' },
+  { slug: 'go', name: 'Go', domain: 'go.dev' },
+  { slug: 'rust', name: 'Rust', domain: 'rust-lang.org' },
+  { slug: 'npm', name: 'npm', domain: 'npmjs.com' },
+  // Data
+  { slug: 'mongodb', name: 'MongoDB', domain: 'mongodb.com' },
+  { slug: 'postgres', name: 'Postgres', domain: 'postgresql.org' },
+  { slug: 'mysql', name: 'MySQL', domain: 'mysql.com' },
+  { slug: 'redis', name: 'Redis', domain: 'redis.io' },
+  { slug: 'supabase', name: 'Supabase', domain: 'supabase.com' },
+  { slug: 'firebase', name: 'Firebase', domain: 'firebase.google.com' },
+  // AI
+  { slug: 'openai', name: 'OpenAI', domain: 'openai.com' },
+  { slug: 'anthropic', name: 'Anthropic', domain: 'anthropic.com' },
+  { slug: 'chatgpt', name: 'ChatGPT', domain: 'chat.openai.com' },
+  { slug: 'claude', name: 'Claude', domain: 'claude.ai' },
+  { slug: 'huggingface', name: 'HuggingFace', domain: 'huggingface.co' },
+  // Media
+  { slug: 'spotify', name: 'Spotify', domain: 'spotify.com' },
+  { slug: 'applemusic', name: 'Apple Music', domain: 'music.apple.com' },
+  { slug: 'netflix', name: 'Netflix', domain: 'netflix.com' },
+  { slug: 'twitch', name: 'Twitch', domain: 'twitch.tv' },
+  // Commerce / finance
+  { slug: 'amazon', name: 'Amazon', domain: 'amazon.com' },
+  { slug: 'apple', name: 'Apple', domain: 'apple.com' },
+  { slug: 'paypal', name: 'PayPal', domain: 'paypal.com' },
+  { slug: 'stripe', name: 'Stripe', domain: 'stripe.com' },
+  { slug: 'shopify', name: 'Shopify', domain: 'shopify.com' },
+  // Travel / lifestyle
+  { slug: 'airbnb', name: 'Airbnb', domain: 'airbnb.com' },
+  { slug: 'uber', name: 'Uber', domain: 'uber.com' },
+  { slug: 'doordash', name: 'DoorDash', domain: 'doordash.com' },
+];
+
+const BRAND_BY_SLUG: Record<string, Brand> = BRANDS.reduce(
+  (acc, b) => {
+    acc[b.slug] = b;
+    return acc;
+  },
+  {} as Record<string, Brand>
+);
+
+function isBrand(value: string | undefined): value is string {
+  return !!value && value.startsWith(BRAND_PREFIX);
+}
+
+function brandUrl(slug: string, size: number): string {
+  const brand = BRAND_BY_SLUG[slug];
+  // Fallback: treat the slug as a domain if we don't know it (handles legacy
+  // saved values that pointed at simpleicons slugs).
+  const domain = brand?.domain ?? `${slug}.com`;
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`;
+}
+
+function BrandIcon({ slug, size = 28 }: { slug: string; size?: number }) {
+  // Google's favicon service maxes out near 64; request 64 then scale via
+  // width/height so smaller renders stay crisp on hidpi displays.
+  return (
+    <img
+      src={brandUrl(slug, 64)}
+      alt={BRAND_BY_SLUG[slug]?.name ?? slug}
+      width={size}
+      height={size}
+      className="object-contain rounded-md"
+      loading="lazy"
+    />
+  );
+}
+
 // ── Emoji picker ─────────────────────────────────────────────────────────────
 const EMOJI_CATEGORIES = [
   {
@@ -136,7 +295,24 @@ const EMOJI_CATEGORIES = [
 
 function EmojiPicker({ value, onChange }: { value: string; onChange: (e: string) => void }) {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState(0);
+  // tab: -1 = Brands, 0..n = EMOJI_CATEGORIES index
+  const [tab, setTab] = useState<number>(-1);
+  const [brandQuery, setBrandQuery] = useState('');
+
+  const filteredBrands = BRANDS.filter(
+    (b) =>
+      brandQuery.trim().length === 0 ||
+      b.name.toLowerCase().includes(brandQuery.toLowerCase()) ||
+      b.slug.toLowerCase().includes(brandQuery.toLowerCase())
+  );
+
+  const renderPreview = () => {
+    if (isBrand(value)) {
+      const slug = value.slice(BRAND_PREFIX.length);
+      return <BrandIcon slug={slug} size={22} />;
+    }
+    return <span className="text-xl leading-none">{value || '😀'}</span>;
+  };
 
   return (
     <div className="space-y-1">
@@ -152,9 +328,13 @@ function EmojiPicker({ value, onChange }: { value: string; onChange: (e: string)
               : 'border-border-subtle bg-surface hover:border-border'
           )}
         >
-          <span className="text-xl w-6 text-center">{value || '😀'}</span>
+          <span className="w-6 h-6 flex items-center justify-center">{renderPreview()}</span>
           <span className="flex-1 text-left text-muted text-xs">
-            {value ? 'Selected' : 'Pick an emoji'}
+            {value
+              ? isBrand(value)
+                ? `Brand: ${value.slice(BRAND_PREFIX.length)}`
+                : 'Selected'
+              : 'Pick an icon or brand logo'}
           </span>
           {value && (
             <button
@@ -183,14 +363,26 @@ function EmojiPicker({ value, onChange }: { value: string; onChange: (e: string)
               className="absolute z-50 top-full mt-1 left-0 right-0 glass-elevated rounded-2xl shadow-2xl overflow-hidden"
             >
               {/* Category tabs */}
-              <div className="flex border-b border-border-subtle">
+              <div className="flex border-b border-border-subtle overflow-x-auto scrollbar-none">
+                <button
+                  type="button"
+                  onClick={() => setTab(-1)}
+                  className={cn(
+                    'px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap',
+                    tab === -1
+                      ? 'text-accent border-b-2 border-accent'
+                      : 'text-muted hover:text-secondary'
+                  )}
+                >
+                  Brands
+                </button>
                 {EMOJI_CATEGORIES.map((cat, i) => (
                   <button
                     key={cat.label}
                     type="button"
                     onClick={() => setTab(i)}
                     className={cn(
-                      'flex-1 py-2 text-xs font-medium transition-colors',
+                      'px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap',
                       tab === i
                         ? 'text-accent border-b-2 border-accent'
                         : 'text-muted hover:text-secondary'
@@ -201,25 +393,68 @@ function EmojiPicker({ value, onChange }: { value: string; onChange: (e: string)
                 ))}
               </div>
 
-              {/* Emoji grid */}
-              <div className="grid grid-cols-10 gap-0.5 p-2 max-h-36 overflow-y-auto">
-                {EMOJI_CATEGORIES[tab].emojis.map((em) => (
-                  <button
-                    key={em}
-                    type="button"
-                    onClick={() => {
-                      onChange(em);
-                      setOpen(false);
-                    }}
-                    className={cn(
-                      'flex items-center justify-center h-8 w-8 rounded-lg text-lg transition-all hover:bg-surface-elevated hover:scale-110',
-                      value === em && 'bg-accent/15 ring-1 ring-accent'
+              {tab === -1 ? (
+                <div className="p-2 space-y-2">
+                  <input
+                    autoFocus
+                    placeholder="Search brands (github, slack, figma…)"
+                    value={brandQuery}
+                    onChange={(e) => setBrandQuery(e.target.value)}
+                    className="w-full rounded-lg bg-surface border border-border-subtle text-primary text-xs px-2.5 py-1.5 outline-none focus:border-accent"
+                  />
+                  <div className="grid grid-cols-6 gap-1 max-h-44 overflow-y-auto pr-1">
+                    {filteredBrands.length === 0 ? (
+                      <div className="col-span-6 text-center text-xs text-muted py-6">
+                        No brand matches “{brandQuery}”
+                      </div>
+                    ) : (
+                      filteredBrands.map((b) => {
+                        const v = `${BRAND_PREFIX}${b.slug}`;
+                        const selected = value === v;
+                        return (
+                          <button
+                            key={b.slug}
+                            type="button"
+                            onClick={() => {
+                              onChange(v);
+                              setOpen(false);
+                            }}
+                            className={cn(
+                              'flex flex-col items-center gap-1 p-2 rounded-lg transition-all hover:bg-surface-elevated',
+                              selected && 'bg-accent/15 ring-1 ring-accent'
+                            )}
+                            title={b.name}
+                          >
+                            <BrandIcon slug={b.slug} size={24} />
+                            <span className="text-[10px] text-muted truncate max-w-full leading-tight">
+                              {b.name}
+                            </span>
+                          </button>
+                        );
+                      })
                     )}
-                  >
-                    {em}
-                  </button>
-                ))}
-              </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-10 gap-0.5 p-2 max-h-36 overflow-y-auto">
+                  {EMOJI_CATEGORIES[tab].emojis.map((em) => (
+                    <button
+                      key={em}
+                      type="button"
+                      onClick={() => {
+                        onChange(em);
+                        setOpen(false);
+                      }}
+                      className={cn(
+                        'flex items-center justify-center h-8 w-8 rounded-lg text-lg transition-all hover:bg-surface-elevated hover:scale-110',
+                        value === em && 'bg-accent/15 ring-1 ring-accent'
+                      )}
+                    >
+                      {em}
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -231,12 +466,17 @@ function EmojiPicker({ value, onChange }: { value: string; onChange: (e: string)
 function AppFavicon({ url, emoji }: { url: string; emoji?: string }) {
   const [imgFailed, setImgFailed] = useState(false);
 
-  if (emoji && (imgFailed || emoji)) {
+  if (isBrand(emoji)) {
+    return <BrandIcon slug={emoji.slice(BRAND_PREFIX.length)} size={32} />;
+  }
+
+  if (emoji) {
     return <span className="text-2xl leading-none select-none">{emoji}</span>;
   }
 
   try {
     const hostname = new URL(url).hostname;
+    if (imgFailed) return <span className="text-2xl">🔗</span>;
     return (
       <img
         src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=48`}

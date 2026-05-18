@@ -1,12 +1,11 @@
-import { ExternalLink, Pin, Star, Edit2, Trash2, Copy } from 'lucide-react';
+import { Pin, Star, Edit2, Trash2, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useBookmarksStore } from '@/store/bookmarks.store';
-import { getFaviconUrl, copyToClipboard, truncate } from '@/utils';
+import { getFaviconUrl, copyToClipboard } from '@/utils';
 import type { Bookmark } from '@/types';
-import { BOOKMARK_CATEGORIES } from '@/constants';
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -14,11 +13,24 @@ interface BookmarkCardProps {
   compact?: boolean;
 }
 
+function hostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
+
 export function BookmarkCard({ bookmark, onEdit, compact = false }: BookmarkCardProps) {
   const { remove, togglePin, toggleFavorite, markUsed } = useBookmarksStore();
-  const categoryMeta = BOOKMARK_CATEGORIES[bookmark.category];
 
   const handleOpen = async () => {
+    if (bookmark.environment === 'production') {
+      const ok = window.confirm(
+        `Open Production link?\n\n${bookmark.title}\n${bookmark.url}\n\nThis points to your live environment — make sure that's what you want.`
+      );
+      if (!ok) return;
+    }
     await markUsed(bookmark.id);
     chrome.tabs.create({ url: bookmark.url });
   };
@@ -34,25 +46,26 @@ export function BookmarkCard({ bookmark, onEdit, compact = false }: BookmarkCard
 
   return (
     <motion.div
-      layout
       data-testid={`bookmark-card-${bookmark.id}`}
-      initial={{ opacity: 0, scale: 0.97 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.97 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.15 }}
+      onClick={handleOpen}
       className={cn(
-        'group relative card-hover flex items-start gap-3',
+        'group relative card-hover flex items-start gap-3 cursor-pointer min-w-0',
         compact ? 'p-2.5' : 'p-3.5'
       )}
     >
-      {/* Pin indicator */}
+      {/* Pin indicator (only when no hover actions visible) */}
       {bookmark.isPinned && (
-        <div className="absolute top-2 right-2">
-          <Pin className="h-3 w-3 text-accent opacity-60" />
+        <div className="absolute top-1.5 right-1.5 group-hover:opacity-0 transition-opacity pointer-events-none">
+          <Pin className="h-3 w-3 text-accent" />
         </div>
       )}
 
       {/* Favicon */}
-      <button onClick={handleOpen} className="flex-shrink-0 mt-0.5">
+      <div className="flex-shrink-0 mt-0.5">
         <img
           src={getFaviconUrl(bookmark.url)}
           alt=""
@@ -61,46 +74,43 @@ export function BookmarkCard({ bookmark, onEdit, compact = false }: BookmarkCard
             (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
-      </button>
+      </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0" onClick={handleOpen}>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-primary truncate cursor-pointer hover:text-accent transition-colors">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-sm font-medium text-primary truncate group-hover:text-accent transition-colors">
             {bookmark.title}
           </span>
           {bookmark.isFavorite && (
             <Star className="h-3 w-3 text-warning fill-warning flex-shrink-0" />
           )}
         </div>
-        {!compact && (
-          <p className="text-xs text-muted truncate mt-0.5">{truncate(bookmark.url, 50)}</p>
-        )}
-        {!compact && (bookmark.environment || bookmark.tags.length > 0) && (
-          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            {bookmark.environment && (
-              <Badge variant={envBadgeVariant as any} className="text-xs">
-                {bookmark.environment}
-              </Badge>
-            )}
-            {bookmark.tags.slice(0, 3).map((tag) => (
-              <span key={tag} className="tag text-xs">
-                {tag}
-              </span>
-            ))}
+        <p className="text-xs text-muted truncate mt-0.5">{hostname(bookmark.url)}</p>
+        {!compact && bookmark.environment && (
+          <div className="mt-1.5">
+            <Badge
+              variant={envBadgeVariant as 'local' | 'stage' | 'production' | 'secondary'}
+              className="text-xs"
+            >
+              {bookmark.environment}
+            </Badge>
           </div>
         )}
       </div>
 
-      {/* Hover actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0">
+      {/* Hover actions — absolute so they never reserve layout space */}
+      <div
+        className={cn(
+          'absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150',
+          'rounded-lg bg-surface-elevated/95 backdrop-blur-sm border border-border-subtle shadow-sm px-1 py-0.5'
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            copyToClipboard(bookmark.url);
-          }}
+          onClick={() => copyToClipboard(bookmark.url)}
           title="Copy URL"
         >
           <Copy className="h-3.5 w-3.5" />
@@ -108,10 +118,7 @@ export function BookmarkCard({ bookmark, onEdit, compact = false }: BookmarkCard
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleFavorite(bookmark.id);
-          }}
+          onClick={() => toggleFavorite(bookmark.id)}
           title={bookmark.isFavorite ? 'Unfavorite' : 'Favorite'}
           className={bookmark.isFavorite ? 'text-warning' : ''}
         >
@@ -120,33 +127,19 @@ export function BookmarkCard({ bookmark, onEdit, compact = false }: BookmarkCard
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            togglePin(bookmark.id);
-          }}
+          onClick={() => togglePin(bookmark.id)}
           title={bookmark.isPinned ? 'Unpin' : 'Pin'}
           className={bookmark.isPinned ? 'text-accent' : ''}
         >
           <Pin className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(bookmark);
-          }}
-          title="Edit"
-        >
+        <Button variant="ghost" size="icon-sm" onClick={() => onEdit(bookmark)} title="Edit">
           <Edit2 className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            remove(bookmark.id);
-          }}
+          onClick={() => remove(bookmark.id)}
           title="Delete"
           className="hover:text-destructive"
         >

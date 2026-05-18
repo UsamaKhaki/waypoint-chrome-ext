@@ -17,11 +17,41 @@ import { cn } from '@/lib/utils';
 import type { SlackChannel, SlackUser } from '@/services/slackApi';
 
 const DEV_KEYWORDS = [
-  'deploy', 'deployment', 'release', 'build', 'ci', 'cd', 'pipeline',
-  'alert', 'alerts', 'alarm', 'incident', 'incidents', 'oncall', 'on-call',
-  'prod', 'production', 'staging', 'infra', 'infrastructure', 'ops', 'devops',
-  'monitor', 'monitoring', 'error', 'errors', 'log', 'logs', 'github',
-  'jenkins', 'k8s', 'kubernetes', 'docker', 'aws', 'terraform', 'pagerduty',
+  'deploy',
+  'deployment',
+  'release',
+  'build',
+  'ci',
+  'cd',
+  'pipeline',
+  'alert',
+  'alerts',
+  'alarm',
+  'incident',
+  'incidents',
+  'oncall',
+  'on-call',
+  'prod',
+  'production',
+  'staging',
+  'infra',
+  'infrastructure',
+  'ops',
+  'devops',
+  'monitor',
+  'monitoring',
+  'error',
+  'errors',
+  'log',
+  'logs',
+  'github',
+  'jenkins',
+  'k8s',
+  'kubernetes',
+  'docker',
+  'aws',
+  'terraform',
+  'pagerduty',
 ];
 
 function isDevChannel(name: string): boolean {
@@ -31,11 +61,19 @@ function isDevChannel(name: string): boolean {
 
 function devChannelIcon(name: string) {
   const lower = name.toLowerCase();
-  if (['deploy', 'release', 'build', 'ci', 'cd', 'pipeline', 'github', 'jenkins'].some((k) => lower.includes(k)))
+  if (
+    ['deploy', 'release', 'build', 'ci', 'cd', 'pipeline', 'github', 'jenkins'].some((k) =>
+      lower.includes(k)
+    )
+  )
     return GitBranch;
   if (['alert', 'incident', 'oncall', 'pagerduty', 'alarm'].some((k) => lower.includes(k)))
     return AlertTriangle;
-  if (['infra', 'k8s', 'kubernetes', 'docker', 'aws', 'terraform', 'server', 'prod', 'staging'].some((k) => lower.includes(k)))
+  if (
+    ['infra', 'k8s', 'kubernetes', 'docker', 'aws', 'terraform', 'server', 'prod', 'staging'].some(
+      (k) => lower.includes(k)
+    )
+  )
     return Server;
   return Zap;
 }
@@ -54,7 +92,8 @@ function truncate(text: string, max = 90): string {
 }
 
 function Avatar({ name, src }: { name: string; src?: string }) {
-  if (src) return <img src={src} alt={name} className="h-9 w-9 rounded-full flex-shrink-0 object-cover" />;
+  if (src)
+    return <img src={src} alt={name} className="h-9 w-9 rounded-full flex-shrink-0 object-cover" />;
   return (
     <div className="h-9 w-9 rounded-full bg-surface-elevated border border-border-subtle flex items-center justify-center flex-shrink-0">
       <span className="text-sm font-semibold text-secondary">{name.charAt(0).toUpperCase()}</span>
@@ -66,7 +105,7 @@ function ActiveCard({ channel, contact }: { channel: SlackChannel; contact?: Sla
   const url = `https://slack.com/app_redirect?channel=${channel.id}`;
   const isDm = channel.is_im;
   const name = isDm
-    ? (contact?.real_name || contact?.profile?.display_name || contact?.name || 'Direct Message')
+    ? contact?.real_name || contact?.profile?.display_name || contact?.name || 'Direct Message'
     : `#${channel.name}`;
   const avatar = isDm ? contact?.profile?.image_48 : undefined;
   const latestText = channel.latest?.text ?? '';
@@ -99,9 +138,7 @@ function ActiveCard({ channel, contact }: { channel: SlackChannel; contact?: Sla
             {latestTs && <span className="text-xs text-muted">{timeAgo(latestTs)}</span>}
           </div>
         </div>
-        {latestText && (
-          <p className="text-xs text-muted mt-0.5 truncate">{truncate(latestText)}</p>
-        )}
+        {latestText && <p className="text-xs text-muted mt-0.5 truncate">{truncate(latestText)}</p>}
       </div>
 
       <ExternalLink className="h-3.5 w-3.5 text-muted opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" />
@@ -119,12 +156,14 @@ function DevChannelCard({ channel }: { channel: SlackChannel }) {
       onClick={() => chrome.tabs.create({ url })}
       className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-surface-elevated transition-colors text-left group"
     >
-      <div className={cn(
-        'h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 border',
-        unread > 0
-          ? 'bg-destructive/10 border-destructive/20 text-destructive'
-          : 'bg-surface-elevated border-border-subtle text-secondary'
-      )}>
+      <div
+        className={cn(
+          'h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 border',
+          unread > 0
+            ? 'bg-destructive/10 border-destructive/20 text-destructive'
+            : 'bg-surface-elevated border-border-subtle text-secondary'
+        )}
+      >
         <Icon className="h-4 w-4" />
       </div>
 
@@ -149,7 +188,15 @@ function DevChannelCard({ channel }: { channel: SlackChannel }) {
   );
 }
 
-function EmptyState({ icon: Icon, text, sub }: { icon: React.ElementType; text: string; sub?: string }) {
+function EmptyState({
+  icon: Icon,
+  text,
+  sub,
+}: {
+  icon: React.ElementType;
+  text: string;
+  sub?: string;
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center gap-1">
       <Icon className="h-8 w-8 text-muted mb-2 opacity-40" />
@@ -162,12 +209,25 @@ function EmptyState({ icon: Icon, text, sub }: { icon: React.ElementType; text: 
 type Tab = 'active' | 'dev';
 
 export function SlackDashboard() {
-  const { user, authInfo, unreadConversations, dmUsers, channels, isLoading, error, refresh, disconnect } =
-    useSlackAuthStore();
+  const {
+    user,
+    authInfo,
+    unreadConversations,
+    dmUsers,
+    channels,
+    isLoading,
+    error,
+    refresh,
+    disconnect,
+  } = useSlackAuthStore();
   const [activeTab, setActiveTab] = useState<Tab>('active');
 
   if (!user && isLoading) {
-    return <div className="flex items-center justify-center h-64"><Spinner size="lg" /></div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   // Active: all unreads sorted by count desc
@@ -186,27 +246,42 @@ export function SlackDashboard() {
   ];
 
   return (
-    <div data-testid="slack-dashboard" className="space-y-6">
+    <div data-testid="slack-dashboard" className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {user?.profile?.image_48 ? (
-            <img src={user.profile.image_48} alt={user.real_name} className="h-10 w-10 rounded-full border-2 border-border" />
+            <img
+              src={user.profile.image_48}
+              alt={user.real_name}
+              className="h-10 w-10 rounded-full border-2 border-border"
+            />
           ) : (
             <div className="h-10 w-10 rounded-full bg-surface-elevated border border-border flex items-center justify-center">
               <Hash className="h-5 w-5 text-muted" />
             </div>
           )}
           <div>
-            <h1 className="text-lg font-semibold text-primary">{user?.real_name || authInfo?.userName}</h1>
+            <h1 className="text-lg font-semibold text-primary">
+              {user?.real_name || authInfo?.userName}
+            </h1>
             <p className="text-xs text-muted">{authInfo?.teamName}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={refresh} disabled={isLoading} className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-primary transition-all" title="Refresh">
+          <button
+            onClick={refresh}
+            disabled={isLoading}
+            className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-primary transition-all"
+            title="Refresh"
+          >
             <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
           </button>
-          <button onClick={disconnect} className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-destructive transition-all" title="Disconnect">
+          <button
+            onClick={disconnect}
+            className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-destructive transition-all"
+            title="Disconnect"
+          >
             <LogOut className="h-4 w-4" />
           </button>
         </div>
@@ -233,7 +308,9 @@ export function SlackDashboard() {
       </div>
 
       {error && (
-        <div className="text-xs text-destructive bg-destructive/10 rounded-xl px-4 py-2">{error}</div>
+        <div className="text-xs text-destructive bg-destructive/10 rounded-xl px-4 py-2">
+          {error}
+        </div>
       )}
 
       {/* Content */}
@@ -247,13 +324,23 @@ export function SlackDashboard() {
             transition={{ duration: 0.15 }}
           >
             {isLoading && activeItems.length === 0 ? (
-              <div className="flex items-center justify-center py-12"><Spinner size="md" /></div>
+              <div className="flex items-center justify-center py-12">
+                <Spinner size="md" />
+              </div>
             ) : activeTab === 'active' ? (
               activeItems.length === 0 ? (
-                <EmptyState icon={Bell} text="All caught up" sub="No unread messages across channels or DMs." />
+                <EmptyState
+                  icon={Bell}
+                  text="All caught up"
+                  sub="No unread messages across channels or DMs."
+                />
               ) : (
                 activeItems.map((ch) => (
-                  <ActiveCard key={ch.id} channel={ch} contact={ch.user ? dmUsers[ch.user] : undefined} />
+                  <ActiveCard
+                    key={ch.id}
+                    channel={ch}
+                    contact={ch.user ? dmUsers[ch.user] : undefined}
+                  />
                 ))
               )
             ) : devChannels.length === 0 ? (

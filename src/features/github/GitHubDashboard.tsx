@@ -220,7 +220,7 @@ export function GitHubDashboard() {
   ];
 
   return (
-    <div data-testid="github-dashboard" className="space-y-6">
+    <div data-testid="github-dashboard" className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -311,7 +311,11 @@ export function GitHubDashboard() {
               myPRs.length === 0 ? (
                 <EmptyState icon={GitPullRequest} text="No open pull requests" />
               ) : (
-                <div data-testid="github-prs-list">{myPRs.map((pr) => <PRCard key={pr.id} pr={pr} />)}</div>
+                <div data-testid="github-prs-list">
+                  {myPRs.map((pr) => (
+                    <PRCard key={pr.id} pr={pr} />
+                  ))}
+                </div>
               )
             ) : activeTab === 'issues' ? (
               assignedIssues.length === 0 ? (

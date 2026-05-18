@@ -80,9 +80,7 @@ function IssueCard({ issue, domain }: { issue: JiraIssue; domain: string }) {
           >
             {fields.status.name}
           </span>
-          {fields.priority && (
-            <span className="text-xs text-muted">{fields.priority.name}</span>
-          )}
+          {fields.priority && <span className="text-xs text-muted">{fields.priority.name}</span>}
           {fields.labels.slice(0, 2).map((label) => (
             <span
               key={label}
@@ -158,7 +156,7 @@ export function JiraDashboard() {
   };
 
   return (
-    <div data-testid="jira-dashboard" className="space-y-6">
+    <div data-testid="jira-dashboard" className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -245,9 +243,7 @@ export function JiraDashboard() {
             ) : issueList().length === 0 ? (
               <EmptyState icon={SquareKanban} text={emptyMessages[activeTab]} />
             ) : (
-              issueList().map((issue) => (
-                <IssueCard key={issue.id} issue={issue} domain={domain} />
-              ))
+              issueList().map((issue) => <IssueCard key={issue.id} issue={issue} domain={domain} />)
             )}
           </motion.div>
         </AnimatePresence>

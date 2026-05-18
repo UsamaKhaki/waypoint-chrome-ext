@@ -1,14 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  CalendarDays,
-  RefreshCw,
-  LogOut,
-  MapPin,
-  Video,
-  Users,
-  ExternalLink,
-} from 'lucide-react';
+import { CalendarDays, RefreshCw, LogOut, MapPin, Video, Users, ExternalLink } from 'lucide-react';
 import { useGoogleCalendarAuthStore } from '@/store/googleCalendarAuth.store';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
@@ -16,15 +8,15 @@ import type { CalendarEvent } from '@/services/googleCalendarApi';
 
 // Maps Google Calendar colorId (1–11) to CSS color values
 const COLOR_ID_MAP: Record<string, string> = {
-  '1': '#ac725e',  // Tomato
-  '2': '#d06c64',  // Flamingo
-  '3': '#f83a22',  // Tangerine
-  '4': '#fa573c',  // Banana
-  '5': '#ff7537',  // Sage
-  '6': '#ffad46',  // Basil
-  '7': '#42d692',  // Peacock
-  '8': '#16a765',  // Blueberry
-  '9': '#7bd148',  // Lavender
+  '1': '#ac725e', // Tomato
+  '2': '#d06c64', // Flamingo
+  '3': '#f83a22', // Tangerine
+  '4': '#fa573c', // Banana
+  '5': '#ff7537', // Sage
+  '6': '#ffad46', // Basil
+  '7': '#42d692', // Peacock
+  '8': '#16a765', // Blueberry
+  '9': '#7bd148', // Lavender
   '10': '#51b749', // Grape
   '11': '#dc2127', // Graphite
 };
@@ -62,10 +54,7 @@ function EventCard({ event }: { event: CalendarEvent }) {
       className="w-full flex items-start gap-3 p-3 rounded-xl hover:bg-surface-elevated transition-colors text-left group"
     >
       {/* Color dot */}
-      <div
-        className="h-3 w-3 rounded-full flex-shrink-0 mt-1"
-        style={{ backgroundColor: dot }}
-      />
+      <div className="h-3 w-3 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: dot }} />
 
       <div className="flex-1 min-w-0">
         {/* Title */}
@@ -92,7 +81,9 @@ function EventCard({ event }: { event: CalendarEvent }) {
         {event.attendees && event.attendees.length > 0 && (
           <div className="flex items-center gap-1 mt-1 text-xs text-muted">
             <Users className="h-3 w-3" />
-            <span>{event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}</span>
+            <span>
+              {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
+            </span>
           </div>
         )}
       </div>
@@ -128,15 +119,8 @@ function EmptyState({ text }: { text: string }) {
 type Tab = 'today' | 'upcoming';
 
 export function GoogleCalendarDashboard() {
-  const {
-    userProfile,
-    todayEvents,
-    upcomingEvents,
-    isLoading,
-    error,
-    refresh,
-    disconnect,
-  } = useGoogleCalendarAuthStore();
+  const { userProfile, todayEvents, upcomingEvents, isLoading, error, refresh, disconnect } =
+    useGoogleCalendarAuthStore();
 
   const [activeTab, setActiveTab] = useState<Tab>('today');
 
@@ -153,8 +137,7 @@ export function GoogleCalendarDashboard() {
     { id: 'upcoming', label: 'Upcoming', count: upcomingEvents.length },
   ];
 
-  const eventList = (): CalendarEvent[] =>
-    activeTab === 'today' ? todayEvents : upcomingEvents;
+  const eventList = (): CalendarEvent[] => (activeTab === 'today' ? todayEvents : upcomingEvents);
 
   const emptyMessages: Record<Tab, string> = {
     today: 'No events scheduled for today',
@@ -162,7 +145,7 @@ export function GoogleCalendarDashboard() {
   };
 
   return (
-    <div data-testid="google-calendar-dashboard" className="space-y-6">
+    <div data-testid="google-calendar-dashboard" className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

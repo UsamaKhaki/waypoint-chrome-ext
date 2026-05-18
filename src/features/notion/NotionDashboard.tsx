@@ -1,14 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  BookOpen,
-  Clock,
-  RefreshCw,
-  LogOut,
-  FileText,
-  Database,
-  LayoutGrid,
-} from 'lucide-react';
+import { BookOpen, Clock, RefreshCw, LogOut, FileText, Database, LayoutGrid } from 'lucide-react';
 import { useNotionAuthStore } from '@/store/notionAuth.store';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
@@ -72,15 +64,8 @@ function EmptyState({ text }: { text: string }) {
 type Tab = 'recent' | 'databases' | 'all';
 
 export function NotionDashboard() {
-  const {
-    user,
-    recentPages,
-    databases,
-    isLoading,
-    error,
-    refresh,
-    disconnect,
-  } = useNotionAuthStore();
+  const { user, recentPages, databases, isLoading, error, refresh, disconnect } =
+    useNotionAuthStore();
   const [activeTab, setActiveTab] = useState<Tab>('recent');
 
   if (!user && isLoading) {
@@ -115,7 +100,7 @@ export function NotionDashboard() {
   };
 
   return (
-    <div data-testid="notion-dashboard" className="space-y-6">
+    <div data-testid="notion-dashboard" className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

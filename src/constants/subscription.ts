@@ -11,6 +11,7 @@ export const PRO_FEATURES = {
   SNIPPET_VARIABLES: 'snippet_variables',
   CLOUD_SYNC: 'cloud_sync',
   LINEAR_WIDGET: 'linear_widget',
+  CUSTOM_WORKSPACES: 'custom_workspaces',
 } as const;
 
 export type ProFeature = (typeof PRO_FEATURES)[keyof typeof PRO_FEATURES];

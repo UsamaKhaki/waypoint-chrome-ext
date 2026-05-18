@@ -19,6 +19,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     set({ isLoading: true });
     const saved = await storage.get<AppSettings>('settings');
     set({ settings: { ...DEFAULT_SETTINGS, ...saved }, isLoading: false });
+
+    // Pick up settings changes from other Chrome profiles (synced).
+    storage.onChange('settings', (newValue) => {
+      if (newValue && typeof newValue === 'object') {
+        set({ settings: { ...DEFAULT_SETTINGS, ...(newValue as Partial<AppSettings>) } });
+      }
+    });
   },
 
   update: async (updates) => {

@@ -87,9 +87,9 @@ const STEPS = [
 
 const FEATURES = [
   { icon: GitPullRequest, label: 'Open Pull Requests', desc: 'Approvals & comment status' },
-  { icon: GitMerge,      label: 'Review Requests',    desc: 'PRs assigned for your review' },
-  { icon: Bell,          label: 'Notifications',       desc: 'Mentions, comments & activity' },
-  { icon: Shield,        label: 'Stored Locally',      desc: 'Token never leaves your device' },
+  { icon: GitMerge, label: 'Review Requests', desc: 'PRs assigned for your review' },
+  { icon: Bell, label: 'Notifications', desc: 'Mentions, comments & activity' },
+  { icon: Shield, label: 'Stored Locally', desc: 'Token never leaves your device' },
 ];
 
 export function GitHubConnect() {
@@ -103,10 +103,7 @@ export function GitHubConnect() {
   };
 
   return (
-    <div
-      data-testid="github-connect"
-      className="flex h-full overflow-hidden"
-    >
+    <div data-testid="github-connect" className="flex h-full overflow-hidden">
       {/* ── Left panel ── */}
       <div className="w-64 flex-shrink-0 border-r border-border-subtle flex flex-col">
         {/* Branding */}
@@ -127,7 +124,7 @@ export function GitHubConnect() {
 
         {/* Features */}
         <div className="flex flex-col gap-1 px-4 py-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted px-2 mb-2">
+          <p className="text-[0.67rem] font-semibold uppercase tracking-widest text-muted px-2 mb-2">
             What you get
           </p>
           {FEATURES.map(({ icon: Icon, label, desc }) => (
@@ -140,7 +137,7 @@ export function GitHubConnect() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-secondary leading-none">{label}</p>
-                <p className="text-[11px] text-muted mt-0.5 leading-snug">{desc}</p>
+                <p className="text-[0.73rem] text-muted mt-0.5 leading-snug">{desc}</p>
               </div>
             </div>
           ))}
@@ -197,12 +194,12 @@ export function GitHubConnect() {
                   {/* Badge */}
                   <div
                     className={cn(
-                      'w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-bold transition-all duration-200',
+                      'w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[0.73rem] font-bold transition-all duration-200',
                       isOpen
                         ? 'bg-accent text-white'
                         : isDone
-                        ? 'bg-accent/15 text-accent'
-                        : 'bg-surface-elevated text-muted border border-border'
+                          ? 'bg-accent/15 text-accent'
+                          : 'bg-surface-elevated text-muted border border-border'
                     )}
                   >
                     {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : step.number}
@@ -226,14 +223,15 @@ export function GitHubConnect() {
                     >
                       {step.title}
                     </span>
-                    <span className="text-[11px] text-muted">{step.description}</span>
+                    <span className="text-[0.73rem] text-muted">{step.description}</span>
                   </div>
 
                   {/* Chevron */}
-                  {isOpen
-                    ? <ChevronUp className="h-3.5 w-3.5 text-muted flex-shrink-0" />
-                    : <ChevronDown className="h-3.5 w-3.5 text-muted flex-shrink-0" />
-                  }
+                  {isOpen ? (
+                    <ChevronUp className="h-3.5 w-3.5 text-muted flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted flex-shrink-0" />
+                  )}
                 </button>
 
                 {/* Expanded content */}
@@ -255,9 +253,11 @@ export function GitHubConnect() {
                           {step.details.map((detail, i) => (
                             <li key={i} className="flex items-start gap-3">
                               <div className="w-4 h-4 rounded-full bg-accent/10 border border-accent/20 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                <span className="text-[9px] font-bold text-accent">{i + 1}</span>
+                                <span className="text-[0.6rem] font-bold text-accent">{i + 1}</span>
                               </div>
-                              <span className="text-xs text-secondary leading-relaxed">{detail}</span>
+                              <span className="text-xs text-secondary leading-relaxed">
+                                {detail}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -265,17 +265,17 @@ export function GitHubConnect() {
                         {/* Scopes */}
                         {step.scopes && (
                           <div className="rounded-lg border border-border-subtle bg-background p-3 space-y-2">
-                            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
+                            <p className="text-[0.67rem] font-semibold uppercase tracking-widest text-muted">
                               Required scopes
                             </p>
                             <div className="space-y-1.5">
                               {step.scopes.map((scope) => (
                                 <div key={scope.name} className="flex items-center gap-2.5">
                                   <CheckCircle2 className="h-3 w-3 text-accent flex-shrink-0" />
-                                  <code className="px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[11px] font-mono">
+                                  <code className="px-1.5 py-0.5 rounded bg-accent/10 text-accent text-[0.73rem] font-mono">
                                     {scope.name}
                                   </code>
-                                  <span className="text-[11px] text-muted">{scope.desc}</span>
+                                  <span className="text-[0.73rem] text-muted">{scope.desc}</span>
                                 </div>
                               ))}
                             </div>
@@ -286,7 +286,7 @@ export function GitHubConnect() {
                         {step.tip && (
                           <div
                             className={cn(
-                              'flex items-start gap-2 px-3 py-2.5 rounded-lg text-[11px] leading-relaxed',
+                              'flex items-start gap-2 px-3 py-2.5 rounded-lg text-[0.73rem] leading-relaxed',
                               step.tipType === 'warning'
                                 ? 'bg-warning/8 border border-warning/20 text-warning'
                                 : 'bg-surface border border-border-subtle text-muted'
@@ -313,7 +313,9 @@ export function GitHubConnect() {
             <label htmlFor="github-token" className="text-xs font-semibold text-secondary">
               Paste your token
             </label>
-            <span className="text-[10px] text-muted">Stored locally · never sent to a server</span>
+            <span className="text-[0.67rem] text-muted">
+              Stored locally · never sent to a server
+            </span>
           </div>
 
           <div className="relative">

@@ -14,7 +14,6 @@ import { useCommandPaletteStore } from '@/store/commandPalette.store';
 import { Spinner } from '@/components/ui/Spinner';
 import { CommandPalette, useCommandRegistration } from '@/features/command-palette';
 import { BookmarksPanel } from '@/features/bookmarks';
-import { EnvironmentsPanel } from '@/features/environments';
 import { GitHubPanel } from '@/features/github';
 import { LinearPanel } from '@/features/linear';
 import { JiraPanel } from '@/features/jira';
@@ -38,6 +37,7 @@ import { SessionsPanel } from '@/features/sessions';
 import { useSessionsStore } from '@/store/sessions.store';
 import { useGoogleProfileStore } from '@/store/googleProfile.store';
 import { storage } from '@/services/storage';
+import { migrateEnvironmentsToBookmarks } from '@/services/migrateEnvironmentsToBookmarks';
 
 type Section =
   | 'overview'
@@ -55,6 +55,18 @@ type Section =
   | 'sessions'
   | 'settings';
 
+// Sections that render their own sticky header + scroll area and so opt out
+// of the MainLayout's outer `p-6` padding.
+const CONNECTOR_SECTIONS = new Set([
+  'github',
+  'linear',
+  'jira',
+  'slack',
+  'notion',
+  'google-calendar',
+  'bookmarks',
+]);
+
 export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('overview');
   const [isBooting, setIsBooting] = useState(true);
@@ -64,7 +76,11 @@ export default function App() {
   const sectionEnteredAt = useRef<number>(Date.now());
   const prevSection = useRef<string>('overview');
 
-  const handleNavigate = useCallback((s: string) => {
+  const handleNavigate = useCallback((rawSection: string) => {
+    // Environments has been merged into Bookmarks; route any lingering
+    // references (saved active section, deep links, keyboard shortcuts,
+    // command palette items) to the bookmarks panel.
+    const s = rawSection === 'environments' ? 'bookmarks' : rawSection;
     const duration = Date.now() - sectionEnteredAt.current;
     analytics.sectionLeft(prevSection.current, duration);
     analytics.sectionViewed(s);
@@ -92,6 +108,11 @@ export default function App() {
   useSnippetCommands();
 
   useEffect(() => {
+    // Migrate legacy environment links into Chrome bookmarks before the
+    // bookmarks store loads, so the migrated items show up on first render.
+    migrateEnvironmentsToBookmarks().catch(() => {
+      /* migration is best-effort; failures don't block app boot */
+    });
     Promise.all([
       loadBookmarks(),
       loadEnvironments(),
@@ -141,9 +162,9 @@ export default function App() {
       case 'overview':
         return wrap('overview', <OverviewPanel onNavigate={handleNavigate} />);
       case 'bookmarks':
-        return wrap('bookmarks', <BookmarksPanel />);
+      // 'environments' is now merged into the bookmarks panel — fall through.
       case 'environments':
-        return wrap('environments', <EnvironmentsPanel />);
+        return wrap('bookmarks', <BookmarksPanel />);
       case 'github':
         return wrap('github', <GitHubPanel />);
       case 'linear':
@@ -175,17 +196,13 @@ export default function App() {
     <>
       <MainLayout
         sidebar={
-          <SidebarNav
-            activeSection={activeSection}
-            onSectionChange={(s) => handleNavigate(s)}
-          />
+          <SidebarNav activeSection={activeSection} onSectionChange={(s) => handleNavigate(s)} />
         }
         header={<TopBar />}
+        banner={<WorkspaceModeIndicator />}
+        className={CONNECTOR_SECTIONS.has(activeSection) ? 'p-0' : undefined}
       >
-        <>
-          <WorkspaceModeIndicator />
-          {renderSection()}
-        </>
+        {renderSection()}
       </MainLayout>
       <CommandPalette />
       {showOnboarding && <OnboardingFlow onComplete={() => setShowOnboarding(false)} />}

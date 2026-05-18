@@ -61,9 +61,7 @@ function IssueCard({ issue }: { issue: LinearIssue }) {
         </div>
         <div className="flex items-center gap-3 mt-1 text-xs text-muted flex-wrap">
           <span>{issue.team.name}</span>
-          <span
-            className={cn('font-medium', PRIORITY_COLORS[issue.priority])}
-          >
+          <span className={cn('font-medium', PRIORITY_COLORS[issue.priority])}>
             {PRIORITY_LABELS[issue.priority] ?? issue.priorityLabel}
           </span>
           <span className="flex items-center gap-1">
@@ -196,7 +194,7 @@ export function LinearDashboard() {
   ];
 
   return (
-    <div data-testid="linear-dashboard" className="space-y-6">
+    <div data-testid="linear-dashboard" className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

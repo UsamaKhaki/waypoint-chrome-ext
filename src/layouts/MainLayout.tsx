@@ -5,11 +5,13 @@ import { useSettingsStore } from '@/store/settings.store';
 interface MainLayoutProps {
   sidebar?: React.ReactNode;
   header?: React.ReactNode;
+  /** Optional banner rendered between header and content (e.g. workspace mode). */
+  banner?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }
 
-export function MainLayout({ sidebar, header, children, className }: MainLayoutProps) {
+export function MainLayout({ sidebar, header, banner, children, className }: MainLayoutProps) {
   const isCollapsed = useSettingsStore((s) => s.settings.sidebarCollapsed ?? false);
 
   return (
@@ -30,6 +32,7 @@ export function MainLayout({ sidebar, header, children, className }: MainLayoutP
             {header}
           </header>
         )}
+        {banner}
         <main className={cn('flex-1 overflow-y-auto p-6 flex flex-col', className)}>
           <motion.div
             initial={{ opacity: 0, y: 4 }}

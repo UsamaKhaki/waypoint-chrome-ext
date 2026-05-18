@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bookmark,
-  Globe,
   Target,
   Layers,
   Settings,
@@ -24,6 +23,12 @@ import {
 import { cn } from '@/lib/utils';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { useSettingsStore } from '@/store/settings.store';
+import { useGitHubAuthStore } from '@/store/githubAuth.store';
+import { useLinearAuthStore } from '@/store/linearAuth.store';
+import { useJiraAuthStore } from '@/store/jiraAuth.store';
+import { useSlackAuthStore } from '@/store/slackAuth.store';
+import { useNotionAuthStore } from '@/store/notionAuth.store';
+import { useGoogleCalendarAuthStore } from '@/store/googleCalendarAuth.store';
 import { Badge } from '@/components/ui/Badge';
 
 type NavItemDef = { id: string; label: string; icon: React.ElementType; shortcut: string };
@@ -39,7 +44,6 @@ const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
   {
     label: 'Connectors',
     items: [
-      { id: 'environments', label: 'Environments', icon: Globe, shortcut: '3' },
       { id: 'github', label: 'GitHub', icon: GitHubIcon, shortcut: '4' },
       { id: 'linear', label: 'Linear', icon: LinearIcon, shortcut: 'l i' },
       { id: 'jira', label: 'Jira', icon: JiraIcon, shortcut: 'j i' },
@@ -59,7 +63,12 @@ const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
   },
 ];
 
-const SETTINGS_ITEM: NavItemDef = { id: 'settings', label: 'Settings', icon: Settings, shortcut: '9' };
+const SETTINGS_ITEM: NavItemDef = {
+  id: 'settings',
+  label: 'Settings',
+  icon: Settings,
+  shortcut: '9',
+};
 
 interface SidebarNavProps {
   activeSection: string;
@@ -212,6 +221,37 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
   const isCollapsed = useSettingsStore((s) => s.settings.sidebarCollapsed ?? false);
   const updateSettings = useSettingsStore((s) => s.update);
 
+  // Connection status — drives which connector entries appear in the sidebar.
+  const ghConnected = useGitHubAuthStore((s) => s.isConnected);
+  const linearConnected = useLinearAuthStore((s) => s.isConnected);
+  const jiraConnected = useJiraAuthStore((s) => s.isConnected);
+  const slackConnected = useSlackAuthStore((s) => s.isConnected);
+  const notionConnected = useNotionAuthStore((s) => s.isConnected);
+  const calendarConnected = useGoogleCalendarAuthStore((s) => s.isConnected);
+
+  const connectedMap: Record<string, boolean> = {
+    github: ghConnected,
+    linear: linearConnected,
+    jira: jiraConnected,
+    slack: slackConnected,
+    notion: notionConnected,
+    'google-calendar': calendarConnected,
+  };
+
+  // Filter the Connectors group: keep 'environments' always (it's local data),
+  // and only keep external connectors that are actually connected. Always keep
+  // whichever connector is currently active, so the user can navigate back.
+  const navGroups = NAV_GROUPS.map((group) => {
+    if (group.label !== 'Connectors') return group;
+    return {
+      ...group,
+      items: group.items.filter((item) => {
+        if (item.id === activeSection) return true;
+        return connectedMap[item.id] ?? true;
+      }),
+    };
+  }).filter((group) => group.items.length > 0);
+
   const toggle = () => updateSettings({ sidebarCollapsed: !isCollapsed });
 
   return (
@@ -250,7 +290,7 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
 
       {/* Grouped nav items */}
       <div className="flex-1 w-full space-y-1">
-        {NAV_GROUPS.map((group) => (
+        {navGroups.map((group) => (
           <NavGroup
             key={group.label}
             group={group}

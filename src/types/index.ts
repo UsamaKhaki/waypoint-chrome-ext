@@ -13,6 +13,10 @@ export interface Bookmark {
   order: number;
   createdAt: number;
   lastUsedAt?: number;
+  /** Immediate Chrome parent folder name, e.g. "Work". */
+  folder?: string;
+  /** Full Chrome folder path, e.g. "Bookmarks bar / Dev / Work". */
+  folderPath?: string;
 }
 
 export type BookmarkCategory =
@@ -87,16 +91,32 @@ export interface RecentCommand {
 }
 
 // Workspace / Focus Modes
-export type WorkspaceMode =
-  | 'frontend'
-  | 'backend'
-  | 'devops'
-  | 'debugging'
-  | 'sprint-planning'
-  | 'production-support'
-  | 'meeting'
-  | 'deep-work'
-  | 'default';
+/** Workspace mode IDs are open-ended now that users can create custom modes. */
+export type WorkspaceMode = string;
+
+export const BUILTIN_WORKSPACE_MODES = [
+  'default',
+  'frontend',
+  'backend',
+  'devops',
+  'debugging',
+  'sprint-planning',
+  'production-support',
+  'meeting',
+  'deep-work',
+] as const;
+
+/** A user-defined workspace mode persisted in storage. */
+export interface CustomWorkspaceMode {
+  id: string;
+  label: string;
+  description: string;
+  emoji: string;
+  /** Sidebar section ids to hide while this mode is active. */
+  hiddenSidebarItems?: string[];
+  /** Overview section ids to hide while this mode is active. */
+  hiddenOverviewSections?: string[];
+}
 
 export interface WorkspaceConfig {
   mode: WorkspaceMode;
@@ -223,4 +243,7 @@ export type StorageKey =
   | 'slackToken'
   | 'notionToken'
   | 'googleCalendarConnected'
-  | 'activeSection';
+  | 'activeSection'
+  | 'bookmarksMeta'
+  | 'environmentsMigratedToBookmarks'
+  | 'customWorkspaceModes';
