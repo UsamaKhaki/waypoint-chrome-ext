@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
 import { debounce } from '@/utils';
+import { PanelShell, PanelHeader, PanelEmptyState } from '@/features/shared/PanelShell';
 
 export function DailyFocusWidget() {
   const { dailyFocus, addPriority, togglePriority, removePriority, updateNotes, updateGoals } =
@@ -66,27 +67,27 @@ export function DailyFocusWidget() {
   ] as const;
 
   return (
-    <div data-testid="focus-panel" className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-primary">Daily Focus</h1>
-          <p className="text-sm text-muted mt-0.5">{today}</p>
-        </div>
-        {total > 0 && (
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs text-muted">
-              {completed}/{total} done
-            </span>
-            <div className="w-24 h-1.5 bg-surface-elevated rounded-full overflow-hidden">
-              <div
-                className="h-full bg-accent rounded-full transition-all duration-500"
-                style={{ width: `${total ? (completed / total) * 100 : 0}%` }}
-              />
+    <PanelShell testId="focus-panel">
+      <PanelHeader
+        icon={Target}
+        title="Daily Focus"
+        subtitle={today}
+        actions={
+          total > 0 && (
+            <div className="flex flex-col items-end gap-1.5">
+              <span className="text-xs text-muted font-medium">
+                {completed}/{total} done · {Math.round((completed / total) * 100)}%
+              </span>
+              <div className="w-32 h-1.5 bg-surface-elevated rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-accent rounded-full transition-all duration-500"
+                  style={{ width: `${total ? (completed / total) * 100 : 0}%` }}
+                />
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )
+        }
+      />
 
       {/* Tabs */}
       <div className="flex items-center gap-1 bg-surface-elevated rounded-xl p-1 w-fit">
@@ -138,11 +139,11 @@ export function DailyFocusWidget() {
 
             {/* Empty state */}
             {priorities.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="text-3xl mb-3">🎯</div>
-                <p className="text-sm text-secondary">No priorities yet</p>
-                <p className="text-xs text-muted mt-1">Add what matters most today</p>
-              </div>
+              <PanelEmptyState
+                icon={Flag}
+                title="No priorities yet"
+                hint="Add what matters most today — keep the list short and intentional."
+              />
             )}
 
             {/* Priority list */}
@@ -235,6 +236,6 @@ export function DailyFocusWidget() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </PanelShell>
   );
 }

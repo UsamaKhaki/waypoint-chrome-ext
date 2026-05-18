@@ -1,24 +1,41 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarDays, RefreshCw, LogOut, MapPin, Video, Users, ExternalLink } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import {
+  CalendarDays,
+  MapPin,
+  Video,
+  Users,
+  ChevronRight,
+  Clock,
+  Calendar as CalendarIcon,
+} from 'lucide-react';
 import { useGoogleCalendarAuthStore } from '@/store/googleCalendarAuth.store';
-import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 import type { CalendarEvent } from '@/services/googleCalendarApi';
+import {
+  DashboardHero,
+  DashboardStatTab,
+  DashboardEmptyState,
+  DashboardContentCard,
+  DashboardErrorBanner,
+  DashboardLoading,
+  DashboardTabPanel,
+  DashboardRow,
+  DASHBOARD_MAX_WIDTH_CLASS,
+} from '@/features/shared/DashboardShell';
 
-// Maps Google Calendar colorId (1–11) to CSS color values
 const COLOR_ID_MAP: Record<string, string> = {
-  '1': '#ac725e', // Tomato
-  '2': '#d06c64', // Flamingo
-  '3': '#f83a22', // Tangerine
-  '4': '#fa573c', // Banana
-  '5': '#ff7537', // Sage
-  '6': '#ffad46', // Basil
-  '7': '#42d692', // Peacock
-  '8': '#16a765', // Blueberry
-  '9': '#7bd148', // Lavender
-  '10': '#51b749', // Grape
-  '11': '#dc2127', // Graphite
+  '1': '#ac725e',
+  '2': '#d06c64',
+  '3': '#f83a22',
+  '4': '#fa573c',
+  '5': '#ff7537',
+  '6': '#ffad46',
+  '7': '#42d692',
+  '8': '#16a765',
+  '9': '#7bd148',
+  '10': '#51b749',
+  '11': '#dc2127',
 };
 
 function eventColor(colorId?: string): string {
@@ -28,91 +45,124 @@ function eventColor(colorId?: string): string {
 function formatTime(event: CalendarEvent): string {
   if (event.start.date) return 'All day';
   if (!event.start.dateTime) return '';
-  const date = new Date(event.start.dateTime);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(event.start.dateTime).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function formatTimeRange(event: CalendarEvent): string {
+  if (event.start.date) return 'All day';
+  const start = event.start.dateTime;
+  const end = event.end.dateTime;
+  if (!start || !end) return formatTime(event);
+  const fmt = (s: string) =>
+    new Date(s).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return `${fmt(start)} – ${fmt(end)}`;
 }
 
 function formatDate(event: CalendarEvent): string {
-  if (!event.start.dateTime && !event.start.date) return '';
   const raw = event.start.dateTime ?? event.start.date ?? '';
+  if (!raw) return '';
   const date = new Date(raw);
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
-
   if (date.toDateString() === today.toDateString()) return 'Today';
   if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
   return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-function EventCard({ event }: { event: CalendarEvent }) {
+function isHappeningNow(event: CalendarEvent): boolean {
+  const start = event.start.dateTime;
+  const end = event.end.dateTime;
+  if (!start || !end) return false;
+  const now = Date.now();
+  return new Date(start).getTime() <= now && new Date(end).getTime() >= now;
+}
+
+function EventRow({ event }: { event: CalendarEvent }) {
   const dot = eventColor(event.colorId);
+  const live = isHappeningNow(event);
 
   return (
-    <button
+    <DashboardRow
+      stateBarClass={live ? 'bg-success' : undefined}
       onClick={() => chrome.tabs.create({ url: event.htmlLink })}
-      className="w-full flex items-start gap-3 p-3 rounded-xl hover:bg-surface-elevated transition-colors text-left group"
     >
-      {/* Color dot */}
-      <div className="h-3 w-3 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: dot }} />
-
-      <div className="flex-1 min-w-0">
-        {/* Title */}
-        <p className="text-sm font-medium text-primary group-hover:text-accent transition-colors truncate">
-          {event.summary}
-        </p>
-
-        {/* Time + date */}
-        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted flex-wrap">
-          <span>{formatTime(event)}</span>
-          <span className="opacity-50">·</span>
-          <span>{formatDate(event)}</span>
-        </div>
-
-        {/* Location */}
-        {event.location && (
-          <div className="flex items-center gap-1 mt-1 text-xs text-muted">
-            <MapPin className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate max-w-[200px]">{event.location}</span>
-          </div>
+      {/* Time tile */}
+      <div
+        className={cn(
+          'pl-2 flex-shrink-0 flex flex-col items-center justify-center w-16 rounded-lg py-1.5 text-[11px] font-mono',
+          live
+            ? 'bg-success/10 text-success border border-success/30'
+            : 'bg-surface-elevated text-secondary'
         )}
-
-        {/* Attendee count */}
-        {event.attendees && event.attendees.length > 0 && (
-          <div className="flex items-center gap-1 mt-1 text-xs text-muted">
-            <Users className="h-3 w-3" />
-            <span>
-              {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-        )}
+      >
+        <Clock className="h-3 w-3 mb-0.5 opacity-60" />
+        <span className="leading-tight whitespace-nowrap">{formatTime(event)}</span>
       </div>
 
-      {/* Meet link button */}
-      {event.hangoutLink && (
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: dot }}
+          />
+          <p className="text-sm font-semibold text-primary group-hover:text-accent transition-colors truncate">
+            {event.summary || '(no title)'}
+          </p>
+          {live && (
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 text-success text-[10px] font-semibold uppercase tracking-wider border border-success/30">
+              <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+              Live
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 mt-1 text-xs text-muted flex-wrap">
+          <span>{formatDate(event)}</span>
+          <span>·</span>
+          <span>{formatTimeRange(event)}</span>
+          {event.location && (
+            <>
+              <span>·</span>
+              <span className="flex items-center gap-1 truncate max-w-[200px]">
+                <MapPin className="h-3 w-3 flex-shrink-0" />
+                {event.location}
+              </span>
+            </>
+          )}
+          {event.attendees && event.attendees.length > 0 && (
+            <>
+              <span>·</span>
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {event.attendees.length}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {event.hangoutLink ? (
         <button
           onClick={(e) => {
             e.stopPropagation();
             chrome.tabs.create({ url: event.hangoutLink! });
           }}
-          className="p-1.5 rounded-lg bg-success/10 text-success hover:bg-success/20 transition-colors flex-shrink-0"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-success/10 text-success hover:bg-success/20 border border-success/30 transition-colors text-xs font-medium"
           title="Join Google Meet"
         >
           <Video className="h-3.5 w-3.5" />
+          Join
         </button>
+      ) : (
+        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-muted">
+          <span>Open</span>
+          <ChevronRight className="h-3 w-3" />
+        </div>
       )}
-
-      <ExternalLink className="h-3.5 w-3.5 text-muted opacity-0 group-hover:opacity-100 flex-shrink-0 mt-0.5 transition-opacity" />
-    </button>
-  );
-}
-
-function EmptyState({ text }: { text: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <CalendarDays className="h-8 w-8 text-muted mb-3 opacity-40" />
-      <p className="text-sm text-muted">{text}</p>
-    </div>
+    </DashboardRow>
   );
 }
 
@@ -121,113 +171,93 @@ type Tab = 'today' | 'upcoming';
 export function GoogleCalendarDashboard() {
   const { userProfile, todayEvents, upcomingEvents, isLoading, error, refresh, disconnect } =
     useGoogleCalendarAuthStore();
-
   const [activeTab, setActiveTab] = useState<Tab>('today');
 
-  if (!userProfile && isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  if (!userProfile && isLoading) return <DashboardLoading size="lg" />;
 
-  const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: 'today', label: 'Today', count: todayEvents.length },
-    { id: 'upcoming', label: 'Upcoming', count: upcomingEvents.length },
+  const tabs = [
+    {
+      id: 'today' as Tab,
+      label: 'Today',
+      icon: CalendarDays,
+      count: todayEvents.length,
+      highlight: 'accent' as const,
+    },
+    {
+      id: 'upcoming' as Tab,
+      label: 'Upcoming',
+      icon: CalendarIcon,
+      count: upcomingEvents.length,
+      highlight: 'default' as const,
+    },
   ];
 
-  const eventList = (): CalendarEvent[] => (activeTab === 'today' ? todayEvents : upcomingEvents);
+  const active = tabs.find((t) => t.id === activeTab)!;
+  const eventList = activeTab === 'today' ? todayEvents : upcomingEvents;
 
-  const emptyMessages: Record<Tab, string> = {
-    today: 'No events scheduled for today',
-    upcoming: 'No upcoming events this week',
+  const emptyMessages: Record<Tab, { title: string; hint: string }> = {
+    today: { title: 'Nothing scheduled today', hint: 'Enjoy the quiet — your day is open.' },
+    upcoming: {
+      title: 'No upcoming events',
+      hint: 'Future events from your primary calendar will show up here.',
+    },
   };
+  const empty = emptyMessages[activeTab];
 
   return (
-    <div data-testid="google-calendar-dashboard" className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {userProfile?.picture && (
-            <img
-              src={userProfile.picture}
-              alt={userProfile.name}
-              className="h-10 w-10 rounded-full border-2 border-border"
-            />
-          )}
-          <div>
-            <h1 className="text-lg font-semibold text-primary">{userProfile?.name}</h1>
-            <p className="text-xs text-muted">{userProfile?.email}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={refresh}
-            disabled={isLoading}
-            className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-primary transition-all"
-            title="Refresh"
-          >
-            <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
-          </button>
-          <button
-            onClick={disconnect}
-            className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-destructive transition-all"
-            title="Disconnect"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+    <div
+      data-testid="google-calendar-dashboard"
+      className={cn('p-6 space-y-6', DASHBOARD_MAX_WIDTH_CLASS)}
+    >
+      <DashboardHero
+        avatar={userProfile?.picture}
+        avatarFallback={<CalendarDays className="h-7 w-7 text-muted" />}
+        name={userProfile?.name || ''}
+        subtitle={userProfile?.email}
+        isLoading={isLoading}
+        onRefresh={refresh}
+        onDisconnect={disconnect}
+      />
 
-      {/* Tab strip / stats */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {tabs.map((tab) => (
-          <button
+          <DashboardStatTab
             key={tab.id}
+            icon={tab.icon}
+            label={tab.label}
+            count={tab.count}
+            highlight={tab.highlight}
+            isActive={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              'flex flex-col items-center gap-1 p-3 rounded-xl border transition-all duration-150',
-              activeTab === tab.id
-                ? 'bg-accent/10 border-accent/30 text-accent'
-                : 'bg-surface border-border-subtle text-secondary hover:border-border hover:bg-surface-elevated'
-            )}
-          >
-            <CalendarDays className="h-4 w-4" />
-            <span className="text-lg font-bold">{tab.count}</span>
-            <span className="text-xs opacity-80">{tab.label}</span>
-          </button>
+          />
         ))}
       </div>
 
-      {error && (
-        <div className="text-xs text-destructive bg-destructive/10 rounded-xl px-4 py-2">
-          {error}
-        </div>
-      )}
+      {error && <DashboardErrorBanner message={error} />}
 
-      {/* Tab content */}
-      <div className="card p-2 min-h-[300px]">
+      <DashboardContentCard
+        icon={active.icon}
+        label={active.label}
+        count={active.count}
+        isLoading={isLoading}
+        onRefresh={refresh}
+      >
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-          >
-            {isLoading && todayEvents.length === 0 ? (
-              <div className="flex items-center justify-center py-12">
-                <Spinner size="md" />
-              </div>
-            ) : eventList().length === 0 ? (
-              <EmptyState text={emptyMessages[activeTab]} />
+          <DashboardTabPanel tabKey={activeTab}>
+            {isLoading && eventList.length === 0 ? (
+              <DashboardLoading />
+            ) : eventList.length === 0 ? (
+              <DashboardEmptyState icon={CalendarDays} title={empty.title} hint={empty.hint} />
             ) : (
-              eventList().map((event) => <EventCard key={event.id} event={event} />)
+              <div className="space-y-2">
+                {eventList.map((event) => (
+                  <EventRow key={event.id} event={event} />
+                ))}
+              </div>
             )}
-          </motion.div>
+          </DashboardTabPanel>
         </AnimatePresence>
-      </div>
+      </DashboardContentCard>
     </div>
   );
 }

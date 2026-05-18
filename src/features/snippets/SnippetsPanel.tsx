@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Code2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import {
   useSnippetsStore,
@@ -15,6 +15,7 @@ import { SnippetCard } from './SnippetCard';
 import { SnippetForm } from './SnippetForm';
 import { useSnippetCommands } from './useSnippetCommands';
 import { UpgradePrompt } from '@/features/subscription';
+import { PanelShell, PanelHeader, PanelEmptyState } from '@/features/shared/PanelShell';
 
 export function SnippetsPanel() {
   const { snippets, load } = useSnippetsStore();
@@ -88,33 +89,30 @@ export function SnippetsPanel() {
   ];
 
   return (
-    <div data-testid="snippets-panel" className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-primary">Snippets</h1>
-          <p className="text-sm text-muted mt-0.5">{snippets.length} saved snippets</p>
-        </div>
-        <Button
-          data-testid="add-snippet-btn"
-          size="sm"
-          onClick={openAdd}
-          title={atFreeLimit ? 'Upgrade to Pro for unlimited snippets' : undefined}
-        >
-          <Plus className="h-3.5 w-3.5" /> Add Snippet
-        </Button>
-      </div>
-
-      {/* Search */}
-      <Input
-        data-testid="snippet-search"
-        placeholder="Search snippets..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        leftIcon={<Search className="h-3.5 w-3.5" />}
+    <PanelShell testId="snippets-panel">
+      <PanelHeader
+        icon={Code2}
+        title="Snippets"
+        subtitle={`${snippets.length} saved · ${snippets.filter((s) => s.isPinned).length} pinned`}
+        actions={
+          <Button
+            data-testid="add-snippet-btn"
+            onClick={openAdd}
+            title={atFreeLimit ? 'Upgrade to Pro for unlimited snippets' : undefined}
+          >
+            <Plus className="h-4 w-4" /> New Snippet
+          </Button>
+        }
       />
 
-      {/* Category filter */}
+      <Input
+        data-testid="snippet-search"
+        placeholder="Search snippets…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        leftIcon={<Search className="h-4 w-4" />}
+      />
+
       <div className="flex gap-1.5 flex-wrap">
         {categories.map((cat) => (
           <button
@@ -132,7 +130,6 @@ export function SnippetsPanel() {
         ))}
       </div>
 
-      {/* Free limit banner */}
       {atFreeLimit && (
         <UpgradePrompt
           feature={PRO_FEATURES.UNLIMITED_SNIPPETS}
@@ -140,22 +137,23 @@ export function SnippetsPanel() {
         />
       )}
 
-      {/* Snippet list */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="text-4xl mb-3">📋</div>
-          <h3 className="text-base font-medium text-secondary">
-            {search ? 'No snippets match your search' : 'No snippets yet'}
-          </h3>
-          <p className="text-sm text-muted mt-1">
-            {search ? 'Try different keywords' : 'Save your first command or code snippet'}
-          </p>
-          {!search && (
-            <Button className="mt-4" size="sm" onClick={openAdd}>
-              <Plus className="h-3.5 w-3.5" /> Add Snippet
-            </Button>
-          )}
-        </div>
+        <PanelEmptyState
+          icon={Code2}
+          title={search ? 'No snippets match your search' : 'No snippets yet'}
+          hint={
+            search
+              ? 'Try a different keyword or clear your search.'
+              : "Save your first command, code block, or template — they're searchable from the command palette."
+          }
+          action={
+            !search && (
+              <Button onClick={openAdd}>
+                <Plus className="h-4 w-4" /> Add Snippet
+              </Button>
+            )
+          }
+        />
       ) : (
         <div className="space-y-3">
           <AnimatePresence>
@@ -175,6 +173,6 @@ export function SnippetsPanel() {
         snippet={editingSnippet}
         prefill={prefill ?? undefined}
       />
-    </div>
+    </PanelShell>
   );
 }

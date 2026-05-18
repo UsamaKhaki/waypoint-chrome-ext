@@ -6,7 +6,7 @@ import { SESSION_FREE_LIMIT, PRO_FEATURES } from '@/constants/subscription';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { UpgradePrompt } from '@/features/subscription';
-import { cn } from '@/lib/utils';
+import { PanelShell, PanelHeader, PanelEmptyState } from '@/features/shared/PanelShell';
 
 export function SessionsPanel() {
   const { sessions, isLoading, load, saveCurrentTabs, restoreSession, deleteSession } =
@@ -48,21 +48,22 @@ export function SessionsPanel() {
   };
 
   return (
-    <div data-testid="sessions-panel" className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-primary">Tab Sessions</h1>
-          <p className="text-sm text-muted mt-0.5">Save and restore named tab sets</p>
-        </div>
-        {!isPro && (
-          <span className="text-xs text-muted">
-            {sessions.length}/{SESSION_FREE_LIMIT} sessions
-          </span>
-        )}
-      </div>
+    <PanelShell testId="sessions-panel">
+      <PanelHeader
+        icon={FolderOpen}
+        title="Tab Sessions"
+        subtitle="Save and restore named tab sets"
+        actions={
+          !isPro && (
+            <span className="text-xs text-muted px-2 py-1 rounded-md bg-surface-elevated border border-border-subtle">
+              {sessions.length}/{SESSION_FREE_LIMIT} sessions
+            </span>
+          )
+        }
+      />
 
       {/* Save current tabs */}
-      <div className={cn('card p-4 space-y-3')}>
+      <div className="card p-4 space-y-3">
         <p className="text-sm font-medium text-secondary">Save current window</p>
         <div className="flex items-center gap-2">
           <Input
@@ -95,15 +96,19 @@ export function SessionsPanel() {
 
       {/* Session list */}
       {sessions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <FolderOpen className="h-10 w-10 text-muted mb-3" />
-          <h3 className="text-base font-medium text-secondary">No saved sessions yet</h3>
-          <p className="text-sm text-muted mt-1">Save your current tabs to resume later</p>
-        </div>
+        <PanelEmptyState
+          icon={FolderOpen}
+          title="No saved sessions yet"
+          hint="Save your current tab set above and restore the whole window in one click later."
+        />
       ) : (
         <div className="space-y-3">
           {sessions.map((session) => (
-            <div key={session.id} data-testid={`session-card-${session.id}`} className="card p-4 space-y-2">
+            <div
+              key={session.id}
+              data-testid={`session-card-${session.id}`}
+              className="card p-4 space-y-2"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-primary truncate">{session.name}</p>
@@ -165,6 +170,6 @@ export function SessionsPanel() {
           ))}
         </div>
       )}
-    </div>
+    </PanelShell>
   );
 }

@@ -7,6 +7,11 @@ import { useWorkspaceStore } from '@/store/workspace.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useOverviewLayoutStore, type OverviewSectionId } from '@/store/overviewLayout.store';
 import { useGitHubAuthStore } from '@/store/githubAuth.store';
+import { useLinearAuthStore } from '@/store/linearAuth.store';
+import { useJiraAuthStore } from '@/store/jiraAuth.store';
+import { useSlackAuthStore } from '@/store/slackAuth.store';
+import { useNotionAuthStore } from '@/store/notionAuth.store';
+import { useGoogleCalendarAuthStore } from '@/store/googleCalendarAuth.store';
 import { useGoogleProfileStore } from '@/store/googleProfile.store';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/lib/utils';
@@ -62,7 +67,7 @@ function PrioritiesPanel({ onNavigate }: { onNavigate: (s: string) => void }) {
           onClick={() => onNavigate('focus')}
           className="text-xs text-muted hover:text-accent transition-colors"
         >
-          Full view →
+          View all →
         </button>
       </div>
 
@@ -372,6 +377,16 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
   const googleProfile = useGoogleProfileStore((s) => s.profile);
   const [editing, setEditing] = useState(false);
 
+  // Connection status drives the per-connector grouping below — connected
+  // services get their own labeled group; disconnected ones fall into the
+  // shared "Connect more" bucket.
+  const githubConnected = useGitHubAuthStore((s) => s.isConnected);
+  const linearConnected = useLinearAuthStore((s) => s.isConnected);
+  const jiraConnected = useJiraAuthStore((s) => s.isConnected);
+  const slackConnected = useSlackAuthStore((s) => s.isConnected);
+  const notionConnected = useNotionAuthStore((s) => s.isConnected);
+  const calendarConnected = useGoogleCalendarAuthStore((s) => s.isConnected);
+
   // Avatar priority: Google photo > GitHub avatar > initials
   const avatarSrc = googleProfile?.picture ?? githubUser?.avatar_url ?? null;
   const displayName = googleProfile?.name ?? userName ?? githubUser?.name ?? '';
@@ -386,17 +401,91 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
     day: 'numeric',
   });
 
-  // Left column renders all visible sections (priorities lives in the right panel)
+  // Left column renders all visible sections — disconnected connector widgets
+  // still show, but they're grouped under "Connectors" with their built-in
+  // connect prompts. Connected widgets get promoted to their own group below.
   const leftSections = sections.filter((s) => s.visible);
 
+  // Group sections dynamically: a connector with an active connection gets its
+  // own labeled group (e.g. "Linear", "Slack"); disconnected ones all fall
+  // into "Connectors" so the user has a single place to wire them up.
+  type GroupId =
+    | 'top'
+    | 'github'
+    | 'linear'
+    | 'jira'
+    | 'slack'
+    | 'notion'
+    | 'calendar'
+    | 'connectors'
+    | 'bare-bottom';
+
+  function groupFor(id: string): GroupId {
+    switch (id) {
+      case 'search':
+      case 'quick-apps':
+        return 'top';
+      case 'github-prs':
+      case 'cicd':
+        return githubConnected ? 'github' : 'connectors';
+      case 'linear-issues':
+        return linearConnected ? 'linear' : 'connectors';
+      case 'jira-issues':
+        return jiraConnected ? 'jira' : 'connectors';
+      case 'slack-unread':
+        return slackConnected ? 'slack' : 'connectors';
+      case 'notion-pages':
+        return notionConnected ? 'notion' : 'connectors';
+      case 'calendar-events':
+        return calendarConnected ? 'calendar' : 'connectors';
+      case 'integrations':
+        return 'connectors';
+      case 'pinned':
+      case 'nav-cards':
+        return 'bare-bottom';
+      default:
+        return 'bare-bottom';
+    }
+  }
+
+  const GROUP_META: Record<Exclude<GroupId, 'top' | 'bare-bottom'>, { label: string }> = {
+    github: { label: 'GitHub' },
+    linear: { label: 'Linear' },
+    jira: { label: 'Jira' },
+    slack: { label: 'Slack' },
+    notion: { label: 'Notion' },
+    calendar: { label: 'Calendar' },
+    connectors: { label: 'Connect more' },
+  };
+
+  // Order of the labeled groups when rendered. Connected service groups appear
+  // first, then any disconnected ones are bundled under "Connect more".
+  const GROUP_ORDER: Exclude<GroupId, 'top' | 'bare-bottom'>[] = [
+    'github',
+    'calendar',
+    'linear',
+    'jira',
+    'slack',
+    'notion',
+    'connectors',
+  ];
+
+  const topSections = leftSections.filter((s) => groupFor(s.id) === 'top');
+  const bareBottomSections = leftSections.filter((s) => groupFor(s.id) === 'bare-bottom');
+  const groupedSections = GROUP_ORDER.map((g) => ({
+    id: g,
+    meta: GROUP_META[g],
+    items: leftSections.filter((s) => groupFor(s.id) === g),
+  })).filter((g) => g.items.length > 0);
+
   return (
-    <div data-testid="overview-panel" className="grid grid-cols-12 gap-5 items-start">
+    <div data-testid="overview-panel" className="grid grid-cols-12 gap-5 items-start pb-12">
       {/* ── Left: 9 cols ─────────────────────────────────────────────── */}
       <div className="col-span-9 space-y-6">
-        {/* Greeting + edit button */}
-        <div className="flex items-start justify-between gap-4">
+        {/* Greeting */}
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <motion.div
-            className="flex items-center gap-4"
+            className="flex items-center gap-3 min-w-0"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
@@ -405,11 +494,13 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
               src={avatarSrc}
               name={displayName || 'W'}
               size="xl"
-              className="ring-2 ring-border-subtle flex-shrink-0"
+              className="border border-border-subtle flex-shrink-0"
             />
-            <div>
-              <p className="text-xs text-muted mb-1">{today}</p>
-              <h1 className="text-2xl font-semibold text-primary">
+            <div className="min-w-0">
+              <p className="text-xs text-muted font-medium uppercase tracking-widest mb-1">
+                {today}
+              </p>
+              <h1 className="text-2xl font-bold text-primary tracking-tight truncate">
                 Good {getGreeting()}
                 {displayName ? `, ${displayName}` : ''}
               </h1>
@@ -423,7 +514,7 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
 
           <button
             onClick={() => setEditing(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border mt-1 flex-shrink-0 border-border-subtle text-muted hover:text-secondary hover:border-border"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border flex-shrink-0 border-border-subtle bg-surface hover:bg-surface-elevated text-secondary hover:text-primary hover:border-border"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Edit Layout
@@ -433,20 +524,58 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
         {/* Modal editor — portal, only mounts when open */}
         {editing && <OverviewEditor onClose={() => setEditing(false)} />}
 
-        {/* Left sections in stored order */}
+        {/* Top sections (search, quick apps) — render bare, no group header */}
         <AnimatePresence mode="popLayout">
-          {leftSections
-            .map((s) => (
-              <LeftSection
-                key={s.id}
-                id={s.id}
-                onNavigate={onNavigate}
-                bookmarks={bookmarks}
-                openPalette={openPalette}
-                userName={userName ?? ''}
-              />
-            ))
-            .filter(Boolean)}
+          {topSections.map((s) => (
+            <LeftSection
+              key={s.id}
+              id={s.id}
+              onNavigate={onNavigate}
+              bookmarks={bookmarks}
+              openPalette={openPalette}
+              userName={userName ?? ''}
+            />
+          ))}
+        </AnimatePresence>
+
+        {/* Grouped sections with category headers */}
+        {groupedSections.map((group) => (
+          <div key={group.id} className="space-y-3">
+            <div className="flex items-center gap-3 px-1">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">
+                {group.meta.label}
+              </h2>
+              <div className="flex-1 h-px bg-border-subtle" />
+            </div>
+            <div className="space-y-4">
+              <AnimatePresence mode="popLayout">
+                {group.items.map((s) => (
+                  <LeftSection
+                    key={s.id}
+                    id={s.id}
+                    onNavigate={onNavigate}
+                    bookmarks={bookmarks}
+                    openPalette={openPalette}
+                    userName={userName ?? ''}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+        ))}
+
+        {/* Bottom sections rendered bare, no group header (e.g. Pinned). */}
+        <AnimatePresence mode="popLayout">
+          {bareBottomSections.map((s) => (
+            <LeftSection
+              key={s.id}
+              id={s.id}
+              onNavigate={onNavigate}
+              bookmarks={bookmarks}
+              openPalette={openPalette}
+              userName={userName ?? ''}
+            />
+          ))}
         </AnimatePresence>
       </div>
 

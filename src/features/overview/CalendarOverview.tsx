@@ -67,8 +67,14 @@ export function CalendarOverview({ onNavigate }: CalendarOverviewProps) {
     );
   }
 
-  const all = [...todayEvents, ...upcomingEvents];
-  // Find the next event we should highlight
+  // Today + upcoming come from the same calendar — dedupe by id so an event
+  // that's both "today" and "upcoming" doesn't render twice.
+  const seen = new Set<string>();
+  const all = [...todayEvents, ...upcomingEvents].filter((e) => {
+    if (seen.has(e.id)) return false;
+    seen.add(e.id);
+    return true;
+  });
   const now = Date.now();
   const upcoming = all
     .filter((e) => {
@@ -140,12 +146,14 @@ export function CalendarOverview({ onNavigate }: CalendarOverviewProps) {
               >
                 <div
                   className={cn(
-                    'flex-shrink-0 mt-0.5 flex flex-col items-center justify-center w-12 rounded-md py-1 text-xs font-mono',
+                    'flex-shrink-0 mt-0.5 flex flex-col items-center justify-center w-16 rounded-md py-1.5 text-[11px] font-mono',
                     live ? 'bg-success/10 text-success' : 'bg-surface-elevated text-secondary'
                   )}
                 >
                   <Clock className="h-3 w-3 mb-0.5 opacity-60" />
-                  <span className="leading-none">{formatTime(event.start.dateTime)}</span>
+                  <span className="leading-tight whitespace-nowrap">
+                    {formatTime(event.start.dateTime)}
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-primary group-hover:text-accent truncate transition-colors">

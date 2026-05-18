@@ -26,7 +26,7 @@
     "https://us.posthog.com/*"
   ],
   "oauth2": {
-    "client_id": "900582464737-mfr83nkd29nmddilojt9nmsa9f685efv.apps.googleusercontent.com",
+    "client_id": "900582464737-fvj0b2485kp70304j1on2mfk57dr6gu0.apps.googleusercontent.com",
     "scopes": [
       "openid",
       "email",

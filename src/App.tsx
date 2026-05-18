@@ -36,6 +36,12 @@ import { useSubscriptionStore } from '@/store/subscription.store';
 import { SessionsPanel } from '@/features/sessions';
 import { useSessionsStore } from '@/store/sessions.store';
 import { useGoogleProfileStore } from '@/store/googleProfile.store';
+import { useGitHubAuthStore } from '@/store/githubAuth.store';
+import { useLinearAuthStore } from '@/store/linearAuth.store';
+import { useJiraAuthStore } from '@/store/jiraAuth.store';
+import { useSlackAuthStore } from '@/store/slackAuth.store';
+import { useNotionAuthStore } from '@/store/notionAuth.store';
+import { useGoogleCalendarAuthStore } from '@/store/googleCalendarAuth.store';
 import { storage } from '@/services/storage';
 import { migrateEnvironmentsToBookmarks } from '@/services/migrateEnvironmentsToBookmarks';
 
@@ -55,9 +61,9 @@ type Section =
   | 'sessions'
   | 'settings';
 
-// Sections that render their own sticky header + scroll area and so opt out
-// of the MainLayout's outer `p-6` padding.
-const CONNECTOR_SECTIONS = new Set([
+// Sections that manage their own internal padding (via PanelShell or their own
+// sticky header layout). MainLayout skips the outer `p-6` for these.
+const SELF_PADDED_SECTIONS = new Set([
   'github',
   'linear',
   'jira',
@@ -65,6 +71,10 @@ const CONNECTOR_SECTIONS = new Set([
   'notion',
   'google-calendar',
   'bookmarks',
+  'snippets',
+  'sessions',
+  'tabs',
+  'focus',
 ]);
 
 export default function App() {
@@ -104,6 +114,15 @@ export default function App() {
   const loadSubscription = useSubscriptionStore((s) => s.load);
   const loadSessions = useSessionsStore((s) => s.load);
   const loadGoogleProfile = useGoogleProfileStore((s) => s.load);
+  // Connector auth stores — hydrated at boot so the sidebar's "show only
+  // connected connectors" filter sees the right `isConnected` flags even when
+  // the user lands directly on a connector or non-overview section.
+  const loadGitHubAuth = useGitHubAuthStore((s) => s.loadToken);
+  const loadLinearAuth = useLinearAuthStore((s) => s.loadApiKey);
+  const loadJiraAuth = useJiraAuthStore((s) => s.loadCredentials);
+  const loadSlackAuth = useSlackAuthStore((s) => s.loadToken);
+  const loadNotionAuth = useNotionAuthStore((s) => s.loadToken);
+  const loadCalendarAuth = useGoogleCalendarAuthStore((s) => s.loadConnection);
 
   useSnippetCommands();
 
@@ -125,6 +144,12 @@ export default function App() {
       loadSubscription(),
       loadSessions(),
       loadGoogleProfile(),
+      loadGitHubAuth(),
+      loadLinearAuth(),
+      loadJiraAuth(),
+      loadSlackAuth(),
+      loadNotionAuth(),
+      loadCalendarAuth(),
     ])
       .then(async () => {
         const [onboardingCompleted, savedSection] = await Promise.all([
@@ -200,7 +225,7 @@ export default function App() {
         }
         header={<TopBar />}
         banner={<WorkspaceModeIndicator />}
-        className={CONNECTOR_SECTIONS.has(activeSection) ? 'p-0' : undefined}
+        className={SELF_PADDED_SECTIONS.has(activeSection) ? 'p-0' : undefined}
       >
         {renderSection()}
       </MainLayout>

@@ -113,18 +113,47 @@ export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
         userName: authTest.user,
         teamName: authTest.team,
       };
-      const [user, directMessages, unreadConversations, channels] = await Promise.all([
+      const [user, directMessages, rawUnreadConversations, channels] = await Promise.all([
         api.getUser(authTest.user_id).catch(() => null),
         api.getDirectMessages(),
         api.getUnreadConversations(),
         api.getChannels(),
       ]);
-      // Resolve user info for each DM so we can show avatars and names
-      const dmUserIds = directMessages.map((ch) => ch.user).filter(Boolean) as string[];
-      const dmUsers = await api.getUsers(dmUserIds).catch(() => ({}));
-      set({ authInfo, user, directMessages, dmUsers, unreadConversations, channels, isLoading: false });
+
+      // Dedupe unread conversations by channel id — some Slack workspaces
+      // surface the same channel through multiple shapes in a single
+      // `users.conversations` response.
+      const seen = new Set<string>();
+      const unreadConversations = rawUnreadConversations.filter((ch) => {
+        if (seen.has(ch.id)) return false;
+        seen.add(ch.id);
+        return true;
+      });
+
+      // Resolve user info for every DM the user might see — from the recent
+      // directMessages list AND any unread IM whose user isn't in that list.
+      // Without this second pass, unread DMs from people outside the top-10
+      // DM list fall back to a generic "Direct Message" placeholder.
+      const dmUserIdSet = new Set<string>();
+      directMessages.forEach((ch) => ch.user && dmUserIdSet.add(ch.user));
+      unreadConversations.forEach((ch) => {
+        if (ch.is_im && ch.user) dmUserIdSet.add(ch.user);
+      });
+      const dmUsers = await api.getUsers(Array.from(dmUserIdSet)).catch(() => ({}));
+      set({
+        authInfo,
+        user,
+        directMessages,
+        dmUsers,
+        unreadConversations,
+        channels,
+        isLoading: false,
+      });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : 'Failed to fetch Slack data.', isLoading: false });
+      set({
+        error: err instanceof Error ? err.message : 'Failed to fetch Slack data.',
+        isLoading: false,
+      });
     }
   },
 }));

@@ -81,12 +81,15 @@ export function SlackOverview({ onNavigate }: SlackOverviewProps) {
           <p className="text-sm text-muted">All caught up — no unread messages</p>
         </div>
       ) : (
-        <div className="card divide-y divide-border-subtle">
+        <div className="space-y-1.5">
           {topUnread.map((ch) => {
             const isDm = ch.is_im;
             const contact = isDm && ch.user ? dmUsers[ch.user] : undefined;
             const name = isDm
-              ? (contact?.real_name || contact?.profile?.display_name || contact?.name || 'Direct Message')
+              ? contact?.real_name ||
+                contact?.profile?.display_name ||
+                contact?.name ||
+                'Direct Message'
               : `#${ch.name}`;
             const avatar = contact?.profile?.image_48;
             const url = `https://slack.com/app_redirect?channel=${ch.id}`;
@@ -95,14 +98,20 @@ export function SlackOverview({ onNavigate }: SlackOverviewProps) {
               <button
                 key={ch.id}
                 onClick={() => chrome.tabs.create({ url })}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-elevated transition-colors text-left group first:rounded-t-xl last:rounded-b-xl"
+                className="w-full flex items-center gap-3 p-3 rounded-xl border border-border-subtle bg-surface hover:bg-surface-elevated hover:border-border transition-all duration-150 text-left group"
               >
                 {/* Avatar or channel icon */}
                 {isDm && avatar ? (
-                  <img src={avatar} alt={name} className="h-7 w-7 rounded-full flex-shrink-0 object-cover" />
+                  <img
+                    src={avatar}
+                    alt={name}
+                    className="h-7 w-7 rounded-full flex-shrink-0 object-cover"
+                  />
                 ) : isDm ? (
                   <div className="h-7 w-7 rounded-full bg-surface-elevated border border-border-subtle flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-semibold text-secondary">{name.charAt(0).toUpperCase()}</span>
+                    <span className="text-xs font-semibold text-secondary">
+                      {name.charAt(0).toUpperCase()}
+                    </span>
                   </div>
                 ) : (
                   <div className="h-7 w-7 rounded-lg bg-surface-elevated border border-border-subtle flex items-center justify-center flex-shrink-0">
@@ -112,15 +121,19 @@ export function SlackOverview({ onNavigate }: SlackOverviewProps) {
 
                 {/* Name + message */}
                 <div className="flex-1 min-w-0">
-                  <span className={cn(
-                    'text-sm font-medium truncate block',
-                    (ch.unread_count ?? 0) > 0 ? 'text-primary' : 'text-secondary'
-                  )}>
+                  <span
+                    className={cn(
+                      'text-sm font-medium truncate block',
+                      (ch.unread_count ?? 0) > 0 ? 'text-primary' : 'text-secondary'
+                    )}
+                  >
                     {name}
                   </span>
                   {ch.latest?.text && (
                     <p className="text-xs text-muted truncate mt-0.5">
-                      {ch.latest.text.length > 60 ? ch.latest.text.slice(0, 60) + '…' : ch.latest.text}
+                      {ch.latest.text.length > 60
+                        ? ch.latest.text.slice(0, 60) + '…'
+                        : ch.latest.text}
                     </p>
                   )}
                 </div>

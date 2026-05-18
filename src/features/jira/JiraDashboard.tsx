@@ -1,21 +1,28 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
   SquareKanban,
   Clock,
   MessageSquare,
-  RefreshCw,
-  LogOut,
-  ExternalLink,
-  CheckCircle2,
   CircleDot,
   FileText,
   History,
+  ChevronRight,
 } from 'lucide-react';
 import { useJiraAuthStore } from '@/store/jiraAuth.store';
-import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 import type { JiraIssue } from '@/services/jiraApi';
+import {
+  DashboardHero,
+  DashboardStatTab,
+  DashboardEmptyState,
+  DashboardContentCard,
+  DashboardErrorBanner,
+  DashboardLoading,
+  DashboardTabPanel,
+  DashboardRow,
+  DASHBOARD_MAX_WIDTH_CLASS,
+} from '@/features/shared/DashboardShell';
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -23,42 +30,43 @@ function timeAgo(dateStr: string): string {
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function statusColor(categoryKey: string): string {
-  if (categoryKey === 'done') return 'text-success bg-success/10';
-  if (categoryKey === 'indeterminate') return 'text-accent bg-accent/10';
-  return 'text-muted bg-surface-elevated';
+function statusPill(categoryKey: string): string {
+  if (categoryKey === 'done') return 'bg-success/10 text-success border-success/30';
+  if (categoryKey === 'indeterminate') return 'bg-warning/10 text-warning border-warning/30';
+  return 'bg-surface-elevated text-secondary border-border-subtle';
 }
 
-function IssueCard({ issue, domain }: { issue: JiraIssue; domain: string }) {
+function statusBar(categoryKey: string): string {
+  if (categoryKey === 'done') return 'bg-success';
+  if (categoryKey === 'indeterminate') return 'bg-warning';
+  return 'bg-muted/40';
+}
+
+function IssueRow({ issue, domain }: { issue: JiraIssue; domain: string }) {
   const { fields } = issue;
   const url = `https://${domain}.atlassian.net/browse/${issue.key}`;
+  const cat = fields.status.statusCategory.key;
 
   return (
-    <button
-      onClick={() => chrome.tabs.create({ url })}
-      className="w-full flex items-start gap-3 p-3 rounded-xl hover:bg-surface-elevated transition-colors text-left group"
-    >
-      {/* Issue type icon */}
+    <DashboardRow stateBarClass={statusBar(cat)} onClick={() => chrome.tabs.create({ url })}>
       <img
         src={fields.issuetype.iconUrl}
         alt={fields.issuetype.name}
-        className="h-4 w-4 flex-shrink-0 mt-0.5 rounded"
+        className="pl-2 h-4 w-4 flex-shrink-0 mt-0.5 rounded"
       />
-
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-mono text-muted">{issue.key}</span>
-          <span className="text-sm font-medium text-primary group-hover:text-accent transition-colors truncate">
+          <span className="text-xs font-mono text-muted flex-shrink-0">{issue.key}</span>
+          <span className="text-sm font-semibold text-primary group-hover:text-accent transition-colors truncate">
             {fields.summary}
           </span>
         </div>
-
-        <div className="flex items-center gap-3 mt-1 text-xs text-muted flex-wrap">
-          <span className="truncate">{fields.project.name}</span>
+        <div className="flex items-center gap-3 mt-1.5 text-xs text-muted flex-wrap">
+          <span className="truncate max-w-[200px]">{fields.project.name}</span>
+          <span>·</span>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {timeAgo(fields.updated)}
@@ -70,39 +78,36 @@ function IssueCard({ issue, domain }: { issue: JiraIssue; domain: string }) {
             </span>
           )}
         </div>
-
-        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
           <span
             className={cn(
-              'px-1.5 py-0.5 rounded-full text-xs font-medium',
-              statusColor(fields.status.statusCategory.key)
+              'px-2 py-0.5 rounded-full text-[11px] font-medium border',
+              statusPill(cat)
             )}
           >
             {fields.status.name}
           </span>
-          {fields.priority && <span className="text-xs text-muted">{fields.priority.name}</span>}
-          {fields.labels.slice(0, 2).map((label) => (
+          {fields.priority && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-surface-elevated text-secondary border border-border-subtle">
+              <img src={fields.priority.iconUrl} alt="" className="h-3 w-3" />
+              {fields.priority.name}
+            </span>
+          )}
+          {fields.labels.slice(0, 3).map((label) => (
             <span
               key={label}
-              className="px-1.5 py-0.5 rounded-full text-xs bg-surface-elevated text-secondary border border-border-subtle"
+              className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-surface-elevated text-secondary border border-border-subtle"
             >
               {label}
             </span>
           ))}
         </div>
       </div>
-
-      <ExternalLink className="h-3.5 w-3.5 text-muted opacity-0 group-hover:opacity-100 flex-shrink-0 mt-0.5 transition-opacity" />
-    </button>
-  );
-}
-
-function EmptyState({ icon: Icon, text }: { icon: React.ElementType; text: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <Icon className="h-8 w-8 text-muted mb-3 opacity-40" />
-      <p className="text-sm text-muted">{text}</p>
-    </div>
+      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-muted">
+        <span>Open</span>
+        <ChevronRight className="h-3 w-3" />
+      </div>
+    </DashboardRow>
   );
 }
 
@@ -123,131 +128,128 @@ export function JiraDashboard() {
   } = useJiraAuthStore();
   const [activeTab, setActiveTab] = useState<Tab>('assigned');
 
-  if (!user && isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  if (!user && isLoading) return <DashboardLoading size="lg" />;
 
   const domain = credentials?.domain ?? '';
   const profileUrl = `https://${domain}.atlassian.net/people/${user?.accountId}`;
 
-  const tabs: { id: Tab; label: string; icon: React.ElementType; count: number }[] = [
-    { id: 'assigned', label: 'Assigned', icon: SquareKanban, count: assignedIssues.length },
-    { id: 'inprogress', label: 'In Progress', icon: CircleDot, count: inProgressIssues.length },
-    { id: 'reported', label: 'Reported', icon: FileText, count: reportedIssues.length },
-    { id: 'recent', label: 'Recent', icon: History, count: recentIssues.length },
+  const tabs = [
+    {
+      id: 'assigned' as Tab,
+      label: 'Assigned',
+      icon: SquareKanban,
+      count: assignedIssues.length,
+      highlight: 'accent' as const,
+    },
+    {
+      id: 'inprogress' as Tab,
+      label: 'In Progress',
+      icon: CircleDot,
+      count: inProgressIssues.length,
+      highlight: 'warning' as const,
+    },
+    {
+      id: 'reported' as Tab,
+      label: 'Reported',
+      icon: FileText,
+      count: reportedIssues.length,
+      highlight: 'default' as const,
+    },
+    {
+      id: 'recent' as Tab,
+      label: 'Recent',
+      icon: History,
+      count: recentIssues.length,
+      highlight: 'default' as const,
+    },
   ];
 
-  const issueList = (): JiraIssue[] => {
-    if (activeTab === 'assigned') return assignedIssues;
-    if (activeTab === 'inprogress') return inProgressIssues;
-    if (activeTab === 'reported') return reportedIssues;
-    return recentIssues;
-  };
+  const active = tabs.find((t) => t.id === activeTab)!;
+  const issueList: JiraIssue[] =
+    activeTab === 'assigned'
+      ? assignedIssues
+      : activeTab === 'inprogress'
+        ? inProgressIssues
+        : activeTab === 'reported'
+          ? reportedIssues
+          : recentIssues;
 
-  const emptyMessages: Record<Tab, string> = {
-    assigned: 'No issues assigned to you',
-    inprogress: 'No issues in progress',
-    reported: 'No issues reported by you',
-    recent: 'No recent activity',
+  const emptyMessages: Record<Tab, { title: string; hint: string }> = {
+    assigned: {
+      title: 'No issues assigned to you',
+      hint: 'Issues assigned to you will appear here automatically.',
+    },
+    inprogress: {
+      title: 'No issues in progress',
+      hint: "Issues you're actively working on will land here.",
+    },
+    reported: {
+      title: 'No issues reported by you',
+      hint: "Issues you've created across all projects will appear here.",
+    },
+    recent: {
+      title: 'No recent activity',
+      hint: 'Recently-updated issues across your projects will show up here.',
+    },
   };
+  const emptyMeta = emptyMessages[activeTab];
 
   return (
-    <div data-testid="jira-dashboard" className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {user?.avatarUrls['48x48'] && (
-            <img
-              src={user.avatarUrls['48x48']}
-              alt={user.displayName}
-              className="h-10 w-10 rounded-full border-2 border-border"
-            />
-          )}
-          <div>
-            <h1 className="text-lg font-semibold text-primary">{user?.displayName}</h1>
-            <button
-              onClick={() => chrome.tabs.create({ url: profileUrl })}
-              className="text-xs text-muted hover:text-accent transition-colors flex items-center gap-1"
-            >
-              {user?.emailAddress}
-              <CheckCircle2 className="h-3 w-3 text-success" />
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={refresh}
-            disabled={isLoading}
-            className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-primary transition-all"
-            title="Refresh"
-          >
-            <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
-          </button>
-          <button
-            onClick={disconnect}
-            className="p-2 rounded-xl hover:bg-surface-elevated text-muted hover:text-destructive transition-all"
-            title="Disconnect"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
+    <div data-testid="jira-dashboard" className={cn('p-6 space-y-6', DASHBOARD_MAX_WIDTH_CLASS)}>
+      <DashboardHero
+        avatar={user?.avatarUrls['48x48']}
+        avatarFallback={<SquareKanban className="h-7 w-7 text-muted" />}
+        name={user?.displayName || ''}
+        subtitle={user?.emailAddress}
+        profileUrl={profileUrl}
+        isLoading={isLoading}
+        onRefresh={refresh}
+        onDisconnect={disconnect}
+      />
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {tabs.map((tab) => (
+          <DashboardStatTab
+            key={tab.id}
+            icon={tab.icon}
+            label={tab.label}
+            count={tab.count}
+            highlight={tab.highlight}
+            isActive={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id)}
+          />
+        ))}
       </div>
 
-      {/* Stats strip */}
-      <div className="grid grid-cols-4 gap-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'flex flex-col items-center gap-1 p-3 rounded-xl border transition-all duration-150',
-                activeTab === tab.id
-                  ? 'bg-accent/10 border-accent/30 text-accent'
-                  : 'bg-surface border-border-subtle text-secondary hover:border-border hover:bg-surface-elevated'
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              <span className="text-lg font-bold">{tab.count}</span>
-              <span className="text-xs opacity-80">{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {error && <DashboardErrorBanner message={error} />}
 
-      {error && (
-        <div className="text-xs text-destructive bg-destructive/10 rounded-xl px-4 py-2">
-          {error}
-        </div>
-      )}
-
-      {/* Tab content */}
-      <div className="card p-2 min-h-[300px]">
+      <DashboardContentCard
+        icon={active.icon}
+        label={active.label}
+        count={active.count}
+        isLoading={isLoading}
+        onRefresh={refresh}
+      >
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-          >
-            {isLoading && assignedIssues.length === 0 ? (
-              <div className="flex items-center justify-center py-12">
-                <Spinner size="md" />
-              </div>
-            ) : issueList().length === 0 ? (
-              <EmptyState icon={SquareKanban} text={emptyMessages[activeTab]} />
+          <DashboardTabPanel tabKey={activeTab}>
+            {isLoading && issueList.length === 0 ? (
+              <DashboardLoading />
+            ) : issueList.length === 0 ? (
+              <DashboardEmptyState
+                icon={SquareKanban}
+                title={emptyMeta.title}
+                hint={emptyMeta.hint}
+              />
             ) : (
-              issueList().map((issue) => <IssueCard key={issue.id} issue={issue} domain={domain} />)
+              <div className="space-y-2">
+                {issueList.map((issue) => (
+                  <IssueRow key={issue.id} issue={issue} domain={domain} />
+                ))}
+              </div>
             )}
-          </motion.div>
+          </DashboardTabPanel>
         </AnimatePresence>
-      </div>
+      </DashboardContentCard>
     </div>
   );
 }

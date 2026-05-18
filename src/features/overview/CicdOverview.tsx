@@ -92,7 +92,10 @@ export function CicdOverview({ onNavigate }: { onNavigate: (s: string) => void }
       })}
 
       {ciStatus.length === 0 && !isLoading && (
-        <p className="text-xs text-muted px-1">Add repos in GitHub Hub to track CI status</p>
+        <div className="card p-4 flex items-center gap-3 text-muted">
+          <GitBranch className="h-5 w-5 opacity-40" />
+          <p className="text-sm">Add repos in GitHub Hub to track CI status</p>
+        </div>
       )}
     </div>
   );

@@ -42,20 +42,22 @@ const STEPS = [
   {
     number: 2,
     icon: Code2,
-    title: 'Add Required Bot Scopes',
+    title: 'Add Required User Scopes',
     description: 'Grant the permissions Waypoint needs.',
     details: [
       'In your app settings, click "OAuth & Permissions"',
-      'Scroll to "Bot Token Scopes"',
-      'Add the three scopes listed below',
+      'Scroll to "User Token Scopes" (not Bot Token Scopes)',
+      'Add all five scopes listed below',
     ],
     scopes: [
       { name: 'channels:read', desc: 'List public channels' },
+      { name: 'groups:read', desc: 'List private channels (needed for unread counts)' },
       { name: 'im:read', desc: 'Access direct messages' },
+      { name: 'mpim:read', desc: 'Access group DMs' },
       { name: 'users:read', desc: 'Look up user information' },
     ],
-    tip: null,
-    tipType: 'info' as const,
+    tip: 'Important: add these under "User Token Scopes" — not Bot. Bot tokens don\'t track unread messages.',
+    tipType: 'warning' as const,
   },
   {
     number: 3,
@@ -73,15 +75,16 @@ const STEPS = [
   {
     number: 4,
     icon: ClipboardPaste,
-    title: 'Copy the Bot Token',
-    description: 'Grab the token after installation.',
+    title: 'Copy the User OAuth Token',
+    description: 'Grab the user-scoped token after installation.',
     details: [
-      'After installing, you\'ll see "Bot User OAuth Token"',
-      'It starts with xoxb-',
-      'Copy it and paste it into the field below',
+      'After installing, scroll to "OAuth Tokens for Your Workspace"',
+      'Copy the "User OAuth Token" — it starts with xoxp-',
+      "Do NOT copy the Bot User OAuth Token (xoxb-) — it can't see unread messages",
+      'Paste the xoxp- token into the field below',
     ],
-    tip: null,
-    tipType: 'info' as const,
+    tip: 'If you accidentally used a bot token (xoxb-), generate the user token by adding User scopes and reinstalling.',
+    tipType: 'warning' as const,
     scopes: null,
   },
 ];
@@ -275,7 +278,7 @@ export function SlackConnect() {
         <div className="px-6 py-4 border-t border-border-subtle flex-shrink-0 space-y-2.5">
           <div className="flex items-center justify-between">
             <label htmlFor="slack-token" className="text-xs font-semibold text-secondary">
-              Paste your bot token
+              Paste your User OAuth Token
             </label>
             <span className="text-[0.67rem] text-muted">
               Stored locally · never sent to a server
@@ -287,7 +290,7 @@ export function SlackConnect() {
               id="slack-token"
               data-testid="slack-input"
               type={showToken ? 'text' : 'password'}
-              placeholder="xoxb-xxxxxxxxxxxx-xxxxxxxxxxxx"
+              placeholder="xoxp-xxxxxxxxxxxx-xxxxxxxxxxxx"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
@@ -302,6 +305,15 @@ export function SlackConnect() {
               {showToken ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
             </button>
           </div>
+          {token.trim().startsWith('xoxb-') && (
+            <div className="flex items-start gap-2 px-3 py-2 rounded-xl bg-warning/10 border border-warning/30 text-warning text-[0.73rem]">
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                This looks like a Bot token (xoxb-). Bot tokens can't read unread message counts —
+                use the User OAuth Token (xoxp-) instead.
+              </span>
+            </div>
+          )}
           {error && (
             <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-destructive/8 border border-destructive/20 text-destructive text-xs">
               <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />

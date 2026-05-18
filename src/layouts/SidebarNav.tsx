@@ -128,14 +128,14 @@ function NavItem({
         {!isCollapsed && (
           <>
             <span className="flex-1 text-left">{item.label}</span>
-            <span
+            <kbd
               className={cn(
-                'text-xs opacity-0 group-hover:opacity-60 transition-opacity',
-                isActive && 'opacity-60'
+                'kbd text-[10px] transition-opacity',
+                isActive ? 'opacity-70' : 'opacity-0 group-hover:opacity-70'
               )}
             >
               {item.shortcut}
-            </span>
+            </kbd>
           </>
         )}
       </motion.button>
@@ -271,10 +271,10 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
       >
         <button
           onClick={() => onSectionChange('overview')}
-          className="h-7 w-7 rounded-lg bg-accent/20 flex items-center justify-center hover:bg-accent/30 transition-colors flex-shrink-0"
+          className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-surface-elevated transition-colors flex-shrink-0"
           title="Overview"
         >
-          <span className="text-accent text-sm font-bold">D</span>
+          <img src="/icon.svg" alt="Waypoint" className="h-8 w-8 rounded-lg" />
         </button>
 
         {!isCollapsed && (

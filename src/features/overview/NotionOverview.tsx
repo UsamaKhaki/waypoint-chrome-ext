@@ -100,7 +100,7 @@ export function NotionOverview({ onNavigate }: NotionOverviewProps) {
           <p className="text-sm">No recent pages</p>
         </div>
       ) : (
-        <div className="card divide-y divide-border-subtle">
+        <div className="space-y-1.5">
           {top.map((page) => {
             const emoji = page.icon && page.icon.type === 'emoji' ? page.icon.emoji : null;
             const externalIcon =
@@ -109,7 +109,7 @@ export function NotionOverview({ onNavigate }: NotionOverviewProps) {
               <button
                 key={page.id}
                 onClick={() => chrome.tabs.create({ url: page.url })}
-                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-elevated transition-colors text-left group first:rounded-t-xl last:rounded-b-xl"
+                className="w-full flex items-center gap-3 p-3 rounded-xl border border-border-subtle bg-surface hover:bg-surface-elevated hover:border-border transition-all duration-150 text-left group"
               >
                 <div className="h-6 w-6 rounded-md bg-surface-elevated flex items-center justify-center flex-shrink-0 text-sm">
                   {emoji ? (

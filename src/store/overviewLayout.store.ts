@@ -22,19 +22,24 @@ export interface OverviewSectionConfig {
 }
 
 const DEFAULT_LAYOUT: OverviewSectionConfig[] = [
+  // Top — bare, no group header
   { id: 'search', label: 'Search Bar', visible: true },
   { id: 'quick-apps', label: 'Quick Apps', visible: true },
-  // 'nav-cards' (Section Cards) removed — same destinations are already in the
-  // sidebar, so there's no need to duplicate them on the overview.
+
+  // GitHub group
   { id: 'github-prs', label: 'Open Pull Requests', visible: true },
+  { id: 'cicd', label: 'CI/CD Status', visible: true },
+
+  // Connectors group
   { id: 'calendar-events', label: 'Calendar — Today', visible: true },
   { id: 'linear-issues', label: 'Linear Issues', visible: true },
   { id: 'jira-issues', label: 'Jira Issues', visible: true },
   { id: 'slack-unread', label: 'Slack Unread', visible: true },
   { id: 'notion-pages', label: 'Notion — Recent', visible: true },
-  { id: 'pinned', label: 'Pinned Bookmarks', visible: true },
-  { id: 'cicd', label: 'CI/CD Status', visible: true },
   { id: 'integrations', label: 'Linear & Jira (Pro tease)', visible: false },
+
+  // Workspace group
+  { id: 'pinned', label: 'Pinned Bookmarks', visible: true },
 ];
 
 interface OverviewLayoutState {

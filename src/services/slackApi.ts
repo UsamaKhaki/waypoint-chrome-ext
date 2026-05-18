@@ -84,12 +84,36 @@ export class SlackApiService {
   }
 
   async getUnreadConversations(): Promise<SlackChannel[]> {
-    const data = await this.fetch<{ channels: SlackChannel[] }>('conversations.list', {
-      types: 'public_channel,im',
+    // `conversations.list` doesn't return unread counts — that field only
+    // comes back from `users.conversations` (which returns the conversations
+    // the calling user belongs to, with `unread_count` and `unread_count_display`).
+    // Fall back to per-conversation `conversations.info` for the unread fields
+    // since some workspaces don't expose `unread_count` on the list response.
+    const data = await this.fetch<{ channels: SlackChannel[] }>('users.conversations', {
+      types: 'public_channel,private_channel,im,mpim',
       exclude_archived: 'true',
-      limit: '50',
+      limit: '200',
     });
-    return data.channels.filter((ch) => (ch.unread_count ?? 0) > 0);
+    const candidates = data.channels;
+
+    // For any channel missing an unread_count, fetch its `conversations.info`
+    // and merge the unread metadata. We cap the fan-out to avoid hammering
+    // the API on huge workspaces.
+    const needsInfo = candidates.filter((ch) => ch.unread_count === undefined).slice(0, 50);
+    const infoResults = await Promise.allSettled(
+      needsInfo.map((ch) =>
+        this.fetch<{ channel: SlackChannel }>('conversations.info', {
+          channel: ch.id,
+          include_num_members: 'false',
+        }).then((r) => r.channel)
+      )
+    );
+    const byId: Record<string, SlackChannel> = {};
+    infoResults.forEach((r, i) => {
+      if (r.status === 'fulfilled') byId[needsInfo[i].id] = r.value;
+    });
+    const merged = candidates.map((ch) => ({ ...ch, ...(byId[ch.id] ?? {}) }));
+    return merged.filter((ch) => (ch.unread_count ?? 0) > 0);
   }
 
   async getChannels(): Promise<SlackChannel[]> {
