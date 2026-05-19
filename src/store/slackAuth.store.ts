@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
-import { SlackApiService, type SlackUser, type SlackChannel } from '@/services/slackApi';
+import { SlackApiService } from '@/services/slackApi';
 import { analytics } from '@/lib/analytics';
 import type { StorageKey } from '@/types';
 
-// Cast 'slackToken' to StorageKey — will be added to types by the types owner
 const SLACK_TOKEN_KEY = 'slackToken' as StorageKey;
+const SLACK_CACHE_KEY = 'slackCache' as StorageKey;
+const CACHE_TTL = 5 * 60 * 1000;
 
 interface SlackAuthInfo {
   userId: string;
@@ -13,14 +14,16 @@ interface SlackAuthInfo {
   teamName: string;
 }
 
+interface SlackDashboardCache {
+  authInfo: SlackAuthInfo;
+  unreadCount: number;
+  timestamp: number;
+}
+
 interface SlackAuthState {
   token: string | null;
   authInfo: SlackAuthInfo | null;
-  user: SlackUser | null;
-  directMessages: SlackChannel[];
-  dmUsers: Record<string, SlackUser>; // userId → SlackUser for DM contacts
-  unreadConversations: SlackChannel[];
-  channels: SlackChannel[];
+  unreadCount: number;
   isConnected: boolean;
   isLoading: boolean;
   isInitializing: boolean;
@@ -34,11 +37,7 @@ interface SlackAuthState {
 export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
   token: null,
   authInfo: null,
-  user: null,
-  directMessages: [],
-  dmUsers: {},
-  unreadConversations: [],
-  channels: [],
+  unreadCount: 0,
   isConnected: false,
   isLoading: false,
   isInitializing: true,
@@ -67,10 +66,8 @@ export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
         userName: authTest.user,
         teamName: authTest.team,
       };
-      // getUser can fail for bot tokens with limited profile scopes — treat as non-fatal
-      const user = await api.getUser(authTest.user_id).catch(() => null);
       await storage.set(SLACK_TOKEN_KEY, token);
-      set({ token, authInfo, user, isConnected: true, isLoading: false });
+      set({ token, authInfo, isConnected: true, isLoading: false });
       analytics.integrationConnectSuccess('slack');
       get()
         .refresh()
@@ -86,16 +83,12 @@ export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
   },
 
   disconnect: async () => {
-    await storage.remove(SLACK_TOKEN_KEY);
+    await Promise.all([storage.remove(SLACK_TOKEN_KEY), storage.remove(SLACK_CACHE_KEY)]);
     analytics.integrationDisconnected('slack');
     set({
       token: null,
       authInfo: null,
-      user: null,
-      directMessages: [],
-      dmUsers: {},
-      unreadConversations: [],
-      channels: [],
+      unreadCount: 0,
       isConnected: false,
       error: null,
     });
@@ -106,49 +99,25 @@ export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
     if (!token) return;
     set({ isLoading: true, error: null });
     try {
+      const cached = await storage.get<SlackDashboardCache>(SLACK_CACHE_KEY);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        set({ authInfo: cached.authInfo, unreadCount: cached.unreadCount, isLoading: false });
+        return;
+      }
+
       const api = new SlackApiService(token);
-      const authTest = await api.getAuthTest();
+      const [authTest, unreadCount] = await Promise.all([
+        api.getAuthTest(),
+        api.getUnreadCount(),
+      ]);
       const authInfo: SlackAuthInfo = {
         userId: authTest.user_id,
         userName: authTest.user,
         teamName: authTest.team,
       };
-      const [user, directMessages, rawUnreadConversations, channels] = await Promise.all([
-        api.getUser(authTest.user_id).catch(() => null),
-        api.getDirectMessages(),
-        api.getUnreadConversations(),
-        api.getChannels(),
-      ]);
 
-      // Dedupe unread conversations by channel id — some Slack workspaces
-      // surface the same channel through multiple shapes in a single
-      // `users.conversations` response.
-      const seen = new Set<string>();
-      const unreadConversations = rawUnreadConversations.filter((ch) => {
-        if (seen.has(ch.id)) return false;
-        seen.add(ch.id);
-        return true;
-      });
-
-      // Resolve user info for every DM the user might see — from the recent
-      // directMessages list AND any unread IM whose user isn't in that list.
-      // Without this second pass, unread DMs from people outside the top-10
-      // DM list fall back to a generic "Direct Message" placeholder.
-      const dmUserIdSet = new Set<string>();
-      directMessages.forEach((ch) => ch.user && dmUserIdSet.add(ch.user));
-      unreadConversations.forEach((ch) => {
-        if (ch.is_im && ch.user) dmUserIdSet.add(ch.user);
-      });
-      const dmUsers = await api.getUsers(Array.from(dmUserIdSet)).catch(() => ({}));
-      set({
-        authInfo,
-        user,
-        directMessages,
-        dmUsers,
-        unreadConversations,
-        channels,
-        isLoading: false,
-      });
+      await storage.set(SLACK_CACHE_KEY, { authInfo, unreadCount, timestamp: Date.now() } satisfies SlackDashboardCache);
+      set({ authInfo, unreadCount, isLoading: false });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'Failed to fetch Slack data.',

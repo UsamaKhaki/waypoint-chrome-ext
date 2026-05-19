@@ -924,7 +924,7 @@ function ConnectorsSection({
   const jiraUser = useJiraAuthStore((s) => s.user);
   const jiraDisconnect = useJiraAuthStore((s) => s.disconnect);
   const slackConnected = useSlackAuthStore((s) => s.isConnected);
-  const slackUser = useSlackAuthStore((s) => s.user);
+  const slackAuthInfo = useSlackAuthStore((s) => s.authInfo);
   const slackDisconnect = useSlackAuthStore((s) => s.disconnect);
   const notionConnected = useNotionAuthStore((s) => s.isConnected);
   const notionUser = useNotionAuthStore((s) => s.user);
@@ -968,9 +968,9 @@ function ConnectorsSection({
       id: 'slack',
       name: 'Slack',
       description:
-        slackConnected && slackUser
-          ? `Connected as ${slackUser.real_name} · DMs, mentions, and channels`
-          : 'Mentions, DMs, and channel notifications',
+        slackConnected && slackAuthInfo
+          ? `Connected as @${slackAuthInfo.userName} · ${slackAuthInfo.teamName}`
+          : 'Unread message counts across channels and DMs',
       status: slackConnected ? 'connected' : 'not_connected',
       logo: <SlackIcon className="h-5 w-5" />,
     },

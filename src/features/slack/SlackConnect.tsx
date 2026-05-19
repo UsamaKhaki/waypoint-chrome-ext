@@ -47,14 +47,13 @@ const STEPS = [
     details: [
       'In your app settings, click "OAuth & Permissions"',
       'Scroll to "User Token Scopes" (not Bot Token Scopes)',
-      'Add all five scopes listed below',
+      'Add all four scopes listed below',
     ],
     scopes: [
-      { name: 'channels:read', desc: 'List public channels' },
-      { name: 'groups:read', desc: 'List private channels (needed for unread counts)' },
-      { name: 'im:read', desc: 'Access direct messages' },
-      { name: 'mpim:read', desc: 'Access group DMs' },
-      { name: 'users:read', desc: 'Look up user information' },
+      { name: 'channels:read', desc: 'Unread counts in public channels' },
+      { name: 'groups:read', desc: 'Unread counts in private channels' },
+      { name: 'im:read', desc: 'Unread counts in direct messages' },
+      { name: 'mpim:read', desc: 'Unread counts in group DMs' },
     ],
     tip: 'Important: add these under "User Token Scopes" — not Bot. Bot tokens don\'t track unread messages.',
     tipType: 'warning' as const,
@@ -120,7 +119,7 @@ export function SlackConnect() {
           </div>
           <h2 className="text-sm font-semibold text-primary">Connect Slack</h2>
           <p className="text-xs text-muted mt-1.5 leading-relaxed">
-            Link your workspace to see messages, mentions, and channels
+            Link your workspace to see unread message counts
           </p>
         </div>
 

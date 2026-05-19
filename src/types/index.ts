@@ -241,6 +241,7 @@ export type StorageKey =
   | 'linearApiKey'
   | 'jiraCredentials'
   | 'slackToken'
+  | 'slackCache'
   | 'notionToken'
   | 'googleCalendarConnected'
   | 'activeSection'
