@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { generateId } from '@/utils';
+import { logActivity } from '@/store/activity.store';
 
 export interface TabSession {
   id: string;
@@ -45,6 +46,12 @@ export const useSessionsStore = create<SessionsState>((set, get) => ({
       const sessions = [session, ...get().sessions];
       await storage.set('sessions', sessions);
       set({ sessions, isLoading: false });
+      logActivity({
+        type: 'session_saved',
+        title: session.name,
+        context: `${session.tabs.length} tab${session.tabs.length === 1 ? '' : 's'}`,
+        dedupeKey: `session:${session.id}`,
+      });
     } catch {
       set({ isLoading: false });
     }

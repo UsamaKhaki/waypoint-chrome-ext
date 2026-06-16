@@ -29,11 +29,27 @@ const SYNC_KEYS: ReadonlySet<StorageKey> = new Set<StorageKey>([
   'subscription',
 ]);
 
+/**
+ * Runtime cloud-sync switch. When OFF, sync-designated keys are written to
+ * local instead — the user's data stays on this device only. Defaults to ON to
+ * preserve the historical behaviour (sync keys always synced); Pro users can
+ * turn it off from Settings. The preference itself lives in local storage and
+ * never syncs, so toggling on one device can't fight with another.
+ */
+let cloudSyncEnabled = true;
+
 function areaFor(key: StorageKey): ChromeArea {
-  return SYNC_KEYS.has(key) ? 'sync' : 'local';
+  return SYNC_KEYS.has(key) && cloudSyncEnabled ? 'sync' : 'local';
 }
 
 const hasChrome = (): boolean => typeof chrome !== 'undefined' && !!chrome?.storage;
+
+/** Raw single-area read, bypassing area routing (used for migration). */
+function rawGet<T>(key: StorageKey, area: ChromeArea): Promise<T | undefined> {
+  return new Promise((resolve) => {
+    chrome.storage[area].get(key, (res) => resolve(res[key] as T | undefined));
+  });
+}
 
 /**
  * Sync writes can fail with QUOTA_BYTES / QUOTA_BYTES_PER_ITEM if a single
@@ -171,5 +187,61 @@ export const storage = {
   /** Whether the given key is configured to sync across devices. */
   isSynced(key: StorageKey): boolean {
     return SYNC_KEYS.has(key);
+  },
+
+  /** The set of keys that follow the user across devices when sync is on. */
+  syncKeys(): StorageKey[] {
+    return [...SYNC_KEYS];
+  },
+
+  /**
+   * Hydrate the cloud-sync preference from local storage. Must run before the
+   * stores load so `areaFor()` routes reads to the correct area. Returns the
+   * resolved flag.
+   */
+  async initCloudSync(): Promise<boolean> {
+    if (!hasChrome()) return cloudSyncEnabled;
+    const stored = await new Promise<boolean | undefined>((resolve) => {
+      chrome.storage.local.get('cloudSyncEnabled', (res) =>
+        resolve(res.cloudSyncEnabled as boolean | undefined)
+      );
+    });
+    if (typeof stored === 'boolean') cloudSyncEnabled = stored;
+    return cloudSyncEnabled;
+  },
+
+  getCloudSyncEnabled(): boolean {
+    return cloudSyncEnabled;
+  },
+
+  /**
+   * Flip cloud sync on/off and migrate the sync-designated keys between areas
+   * so no data is lost or stranded:
+   *   - enabling  → copy each key up from local to sync, clear the local copy
+   *   - disabling → copy each key down from sync to local, clear the sync copy
+   * The preference is written to local last, so a failed migration leaves the
+   * flag untouched.
+   */
+  async setCloudSync(enabled: boolean): Promise<void> {
+    if (!hasChrome()) {
+      cloudSyncEnabled = enabled;
+      return;
+    }
+    const from: ChromeArea = enabled ? 'local' : 'sync';
+    const to: ChromeArea = enabled ? 'sync' : 'local';
+
+    for (const key of SYNC_KEYS) {
+      const value = await rawGet<unknown>(key, from);
+      if (value === undefined) continue;
+      await writeWithFallback(key, value, to);
+      // Only drop the source copy if the destination write actually landed
+      // there (sync writes can soft-demote to local under quota).
+      await new Promise<void>((resolve) => chrome.storage[from].remove(key, () => resolve()));
+    }
+
+    cloudSyncEnabled = enabled;
+    await new Promise<void>((resolve) =>
+      chrome.storage.local.set({ cloudSyncEnabled: enabled }, () => resolve())
+    );
   },
 };

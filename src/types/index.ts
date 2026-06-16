@@ -247,4 +247,14 @@ export type StorageKey =
   | 'activeSection'
   | 'bookmarksMeta'
   | 'environmentsMigratedToBookmarks'
-  | 'customWorkspaceModes';
+  | 'customWorkspaceModes'
+  | 'activityLog'
+  | 'cloudSyncEnabled'
+  | 'reviewRequestsCache'
+  | 'lastNotifiedReviewIds'
+  | 'apiRequests'
+  | 'apiHistory'
+  | 'apiEnvironments'
+  | 'sshHosts'
+  | 'dbConnections'
+  | 'watchedPackages';

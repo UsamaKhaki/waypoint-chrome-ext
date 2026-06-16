@@ -76,11 +76,14 @@ export class GitHubApiService {
     if (!res.ok) {
       let message = `GitHub API error: ${res.status} ${res.statusText}`;
       try {
-        const body = await res.json() as { message?: string };
+        const body = (await res.json()) as { message?: string };
         if (body.message?.includes('forbids access via a personal access tokens')) {
-          message = 'Your PAT lifetime exceeds the org limit (60 days). Regenerate your token with a shorter expiry at github.com/settings/tokens.';
+          message =
+            'Your PAT lifetime exceeds the org limit (60 days). Regenerate your token with a shorter expiry at github.com/settings/tokens.';
         }
-      } catch { /* ignore parse errors */ }
+      } catch {
+        /* ignore parse errors */
+      }
       const error = new Error(message);
       captureApiError(error, 'github', { path, status: res.status });
       throw error;
@@ -134,6 +137,24 @@ export class GitHubApiService {
       '/search/issues?q=is:open+is:pr+review-requested:@me&sort=updated&per_page=20'
     );
     return data.items.map((pr) => ({ ...pr, repoName: repoName(pr.repository_url) }));
+  }
+
+  /** PRs you authored that merged on/after `sinceISO` (YYYY-MM-DD). */
+  async getRecentlyMergedPRs(sinceISO: string): Promise<GitHubPR[]> {
+    const q = `is:pr author:@me is:merged merged:>=${sinceISO}`;
+    const data = await this.fetch<{ items: GitHubPR[] }>(
+      `/search/issues?q=${encodeURIComponent(q)}&sort=updated&per_page=30`
+    );
+    return data.items.map((pr) => ({ ...pr, repoName: repoName(pr.repository_url) }));
+  }
+
+  /** Issues assigned to you that closed on/after `sinceISO` (YYYY-MM-DD). */
+  async getRecentlyClosedIssues(sinceISO: string): Promise<GitHubIssue[]> {
+    const q = `is:issue assignee:@me is:closed closed:>=${sinceISO}`;
+    const data = await this.fetch<{ items: GitHubIssue[] }>(
+      `/search/issues?q=${encodeURIComponent(q)}&sort=updated&per_page=30`
+    );
+    return data.items.map((issue) => ({ ...issue, repoName: repoName(issue.repository_url) }));
   }
 
   async getNotifications(): Promise<GitHubNotification[]> {

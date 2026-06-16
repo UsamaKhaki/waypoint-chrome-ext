@@ -3,6 +3,7 @@ import { storage } from '@/services/storage';
 
 export type OverviewSectionId =
   | 'search'
+  | 'standup'
   | 'quick-apps'
   | 'nav-cards'
   | 'github-prs'
@@ -24,6 +25,7 @@ export interface OverviewSectionConfig {
 const DEFAULT_LAYOUT: OverviewSectionConfig[] = [
   // Top — bare, no group header
   { id: 'search', label: 'Search Bar', visible: true },
+  { id: 'standup', label: 'Morning Standup', visible: true },
   { id: 'quick-apps', label: 'Quick Apps', visible: true },
 
   // GitHub group

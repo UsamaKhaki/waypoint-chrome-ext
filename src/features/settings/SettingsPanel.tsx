@@ -5,7 +5,6 @@ import {
   RotateCcw,
   Check,
   ExternalLink,
-  Cloud,
   Lock,
   Bell,
   Bug,
@@ -43,6 +42,7 @@ import { storage } from '@/services/storage';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
+import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -388,8 +388,25 @@ function AppearanceSection() {
   const { settings, update } = useSettingsStore();
   const plan = useSubscriptionStore((s) => s.plan);
   const openUpgradeModal = useSubscriptionStore((s) => s.openUpgradeModal);
-  const [cloudSync, setCloudSync] = useState(false);
+  const [cloudSync, setCloudSync] = useState(() => storage.getCloudSyncEnabled());
+  const [syncMigrating, setSyncMigrating] = useState(false);
   const isPro = plan === 'pro' || plan === 'team';
+  const syncedCount = storage.syncKeys().length;
+
+  const toggleCloudSync = async () => {
+    if (!isPro) {
+      openUpgradeModal(PRO_FEATURES.CLOUD_SYNC);
+      return;
+    }
+    const next = !cloudSync;
+    setSyncMigrating(true);
+    try {
+      await storage.setCloudSync(next);
+      setCloudSync(next);
+    } finally {
+      setSyncMigrating(false);
+    }
+  };
 
   return (
     <>
@@ -504,19 +521,19 @@ function AppearanceSection() {
         </SettingRow>
         <SettingRow
           label="Cloud Sync"
-          description="Sync snippets and settings across all your Chrome devices"
+          description={
+            isPro
+              ? cloudSync
+                ? `On · ${syncedCount} data types follow your Chrome account across devices`
+                : 'Off · your data stays on this device only'
+              : 'Sync snippets, settings, and layouts across all your Chrome devices'
+          }
           locked={!isPro}
         >
-          <Toggle
-            on={isPro && cloudSync}
-            onToggle={() => {
-              if (!isPro) {
-                openUpgradeModal(PRO_FEATURES.CLOUD_SYNC);
-                return;
-              }
-              setCloudSync((v) => !v);
-            }}
-          />
+          <div className="flex items-center gap-2">
+            {syncMigrating && <Spinner size="sm" />}
+            <Toggle on={isPro && cloudSync} onToggle={() => void toggleCloudSync()} />
+          </div>
         </SettingRow>
       </div>
 

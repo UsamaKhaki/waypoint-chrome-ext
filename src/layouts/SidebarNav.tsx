@@ -10,6 +10,11 @@ import {
   PanelLeftOpen,
   Code2,
   FolderOpen,
+  Activity,
+  Wrench,
+  Zap,
+  Server,
+  Radar,
   ChevronDown,
 } from 'lucide-react';
 import {
@@ -21,7 +26,6 @@ import {
   GoogleCalendarIcon,
 } from '@/components/icons/ConnectorIcons';
 import { cn } from '@/lib/utils';
-import { useWorkspaceStore } from '@/store/workspace.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useGitHubAuthStore } from '@/store/githubAuth.store';
 import { useLinearAuthStore } from '@/store/linearAuth.store';
@@ -29,7 +33,6 @@ import { useJiraAuthStore } from '@/store/jiraAuth.store';
 import { useSlackAuthStore } from '@/store/slackAuth.store';
 import { useNotionAuthStore } from '@/store/notionAuth.store';
 import { useGoogleCalendarAuthStore } from '@/store/googleCalendarAuth.store';
-import { Badge } from '@/components/ui/Badge';
 
 type NavItemDef = { id: string; label: string; icon: React.ElementType; shortcut: string };
 
@@ -59,6 +62,16 @@ const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
       { id: 'tabs', label: 'Tabs', icon: Layers, shortcut: '6' },
       { id: 'snippets', label: 'Snippets', icon: Code2, shortcut: '7' },
       { id: 'sessions', label: 'Sessions', icon: FolderOpen, shortcut: '8' },
+      { id: 'activity', label: 'Activity', icon: Activity, shortcut: 'a c' },
+    ],
+  },
+  {
+    label: 'Dev Tools',
+    items: [
+      { id: 'api-client', label: 'API Client', icon: Zap, shortcut: 'a p' },
+      { id: 'toolbox', label: 'Toolbox', icon: Wrench, shortcut: 't o' },
+      { id: 'connections', label: 'Connections', icon: Server, shortcut: 'c o' },
+      { id: 'radar', label: 'Radar', icon: Radar, shortcut: 'r a' },
     ],
   },
 ];
@@ -217,7 +230,6 @@ function NavGroup({
 }
 
 export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) {
-  const { currentMode } = useWorkspaceStore();
   const isCollapsed = useSettingsStore((s) => s.settings.sidebarCollapsed ?? false);
   const updateSettings = useSettingsStore((s) => s.update);
 
@@ -279,12 +291,6 @@ export function SidebarNav({ activeSection, onSectionChange }: SidebarNavProps) 
 
         {!isCollapsed && (
           <span className="font-semibold text-primary text-sm flex-1 ml-2">Waypoint</span>
-        )}
-
-        {!isCollapsed && currentMode !== 'default' && (
-          <Badge variant="default" className="text-xs capitalize">
-            {currentMode.replace(/-/g, ' ')}
-          </Badge>
         )}
       </div>
 

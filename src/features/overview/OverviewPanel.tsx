@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { QuickApps } from './QuickApps';
 import { OverviewEditor } from './OverviewEditor';
 import { OpenPRs } from './OpenPRs';
+import { StandupDigest } from './StandupDigest';
 import { CicdOverview } from './CicdOverview';
 import { IntegrationsWidget } from './IntegrationsWidget';
 import { SlackOverview } from './SlackOverview';
@@ -187,6 +188,19 @@ function LeftSection({
   userName: string;
 }) {
   switch (id) {
+    case 'standup':
+      return (
+        <motion.div
+          key="standup"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <StandupDigest onNavigate={onNavigate} />
+        </motion.div>
+      );
+
     case 'search':
       return (
         <motion.button
@@ -423,6 +437,7 @@ export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
   function groupFor(id: string): GroupId {
     switch (id) {
       case 'search':
+      case 'standup':
       case 'quick-apps':
         return 'top';
       case 'github-prs':

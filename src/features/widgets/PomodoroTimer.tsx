@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { logActivity } from '@/store/activity.store';
 
 type Phase = 'work' | 'short-break' | 'long-break';
 
@@ -48,7 +49,10 @@ export function PomodoroTimer() {
           if (s <= 1) {
             clearInterval(intervalRef.current!);
             setIsRunning(false);
-            if (phase === 'work') setSessions((n) => n + 1);
+            if (phase === 'work') {
+              setSessions((n) => n + 1);
+              logActivity({ type: 'focus_session', title: '25-minute focus session' });
+            }
             return 0;
           }
           return s - 1;

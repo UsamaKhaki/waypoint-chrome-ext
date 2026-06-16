@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { generateId } from '@/utils';
+import { logActivity } from '@/store/activity.store';
 
 export type SnippetCategory = 'terminal' | 'api' | 'sql' | 'git' | 'docker' | 'other';
 
@@ -114,6 +115,12 @@ export const useSnippetsStore = create<SnippetsState>((set, get) => ({
     const updated = [...get().snippets, newSnippet];
     set({ snippets: updated });
     await storage.set('snippets', updated);
+    logActivity({
+      type: 'snippet_created',
+      title: newSnippet.title,
+      context: newSnippet.category,
+      dedupeKey: `snippet:${newSnippet.id}`,
+    });
   },
 
   update: async (id, updates) => {

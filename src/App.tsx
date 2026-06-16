@@ -34,8 +34,14 @@ import { useSnippetCommands } from '@/features/snippets/useSnippetCommands';
 import { UpgradeModal } from '@/features/subscription';
 import { useSubscriptionStore } from '@/store/subscription.store';
 import { SessionsPanel } from '@/features/sessions';
+import { ActivityPanel } from '@/features/activity';
+import { ToolboxPanel } from '@/features/toolbox';
+import { ApiClientPanel } from '@/features/api-client';
+import { ConnectionsPanel } from '@/features/connections';
+import { RadarPanel } from '@/features/radar';
 import { useSessionsStore } from '@/store/sessions.store';
 import { useGoogleProfileStore } from '@/store/googleProfile.store';
+import { useActivityStore } from '@/store/activity.store';
 import { useGitHubAuthStore } from '@/store/githubAuth.store';
 import { useLinearAuthStore } from '@/store/linearAuth.store';
 import { useJiraAuthStore } from '@/store/jiraAuth.store';
@@ -59,6 +65,11 @@ type Section =
   | 'tabs'
   | 'snippets'
   | 'sessions'
+  | 'activity'
+  | 'toolbox'
+  | 'api-client'
+  | 'connections'
+  | 'radar'
   | 'settings';
 
 // Sections that manage their own internal padding (via PanelShell or their own
@@ -73,6 +84,11 @@ const SELF_PADDED_SECTIONS = new Set([
   'bookmarks',
   'snippets',
   'sessions',
+  'activity',
+  'toolbox',
+  'api-client',
+  'connections',
+  'radar',
   'tabs',
   'focus',
 ]);
@@ -113,6 +129,7 @@ export default function App() {
   const loadSnippets = useSnippetsStore((s) => s.load);
   const loadSubscription = useSubscriptionStore((s) => s.load);
   const loadSessions = useSessionsStore((s) => s.load);
+  const loadActivity = useActivityStore((s) => s.load);
   const loadGoogleProfile = useGoogleProfileStore((s) => s.load);
   // Connector auth stores — hydrated at boot so the sidebar's "show only
   // connected connectors" filter sees the right `isConnected` flags even when
@@ -132,26 +149,31 @@ export default function App() {
     migrateEnvironmentsToBookmarks().catch(() => {
       /* migration is best-effort; failures don't block app boot */
     });
-    Promise.all([
-      loadBookmarks(),
-      loadEnvironments(),
-      loadSettings(),
-      loadWorkspace(),
-      loadTabs(),
-      loadRecentCommands(),
-      loadGitHub(),
-      loadSnippets(),
-      loadSubscription(),
-      loadSessions(),
-      loadGoogleProfile(),
-      loadGitHubAuth(),
-      loadLinearAuth(),
-      loadJiraAuth(),
-      loadSlackAuth(),
-      loadNotionAuth(),
-      loadCalendarAuth(),
-    ])
-      .then(async () => {
+    (async () => {
+      try {
+        // Resolve the cloud-sync preference before stores load so reads/writes
+        // route to the correct storage area from the very first call.
+        await storage.initCloudSync().catch(() => {});
+        await Promise.all([
+          loadBookmarks(),
+          loadEnvironments(),
+          loadSettings(),
+          loadWorkspace(),
+          loadTabs(),
+          loadRecentCommands(),
+          loadGitHub(),
+          loadSnippets(),
+          loadSubscription(),
+          loadSessions(),
+          loadActivity(),
+          loadGoogleProfile(),
+          loadGitHubAuth(),
+          loadLinearAuth(),
+          loadJiraAuth(),
+          loadSlackAuth(),
+          loadNotionAuth(),
+          loadCalendarAuth(),
+        ]);
         const [onboardingCompleted, savedSection] = await Promise.all([
           storage.get<boolean>('onboardingCompleted'),
           storage.get<Section>('activeSection'),
@@ -164,11 +186,12 @@ export default function App() {
         setActiveSection(section);
         prevSection.current = section;
         analytics.sectionViewed(section);
-      })
-      .catch((err: Error) => {
-        Sentry.captureException(err, { tags: { phase: 'app_boot' } });
-      })
-      .finally(() => setIsBooting(false));
+      } catch (err) {
+        Sentry.captureException(err as Error, { tags: { phase: 'app_boot' } });
+      } finally {
+        setIsBooting(false);
+      }
+    })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isBooting) {
@@ -210,6 +233,16 @@ export default function App() {
         return wrap('snippets', <SnippetsPanel />);
       case 'sessions':
         return wrap('sessions', <SessionsPanel />);
+      case 'activity':
+        return wrap('activity', <ActivityPanel />);
+      case 'toolbox':
+        return wrap('toolbox', <ToolboxPanel />);
+      case 'api-client':
+        return wrap('api-client', <ApiClientPanel />);
+      case 'connections':
+        return wrap('connections', <ConnectionsPanel />);
+      case 'radar':
+        return wrap('radar', <RadarPanel />);
       case 'settings':
         return wrap('settings', <SettingsPanel />);
       default:

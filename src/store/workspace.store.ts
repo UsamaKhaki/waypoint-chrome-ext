@@ -9,6 +9,7 @@ import type {
 import { storage } from '@/services/storage';
 import { WORKSPACE_CONFIGS } from '@/constants';
 import { generateId, today } from '@/utils';
+import { logActivity } from '@/store/activity.store';
 
 interface WorkspaceState {
   currentMode: WorkspaceMode;
@@ -148,6 +149,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   togglePriority: async (id) => {
     const focus = get().dailyFocus ?? todayFocus();
+    const target = focus.priorities.find((p) => p.id === id);
     const updated = {
       ...focus,
       priorities: focus.priorities.map((p) =>
@@ -156,6 +158,16 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     };
     set({ dailyFocus: updated });
     await storage.set('dailyFocus', updated);
+    // Log the transition into "done" (not un-checking) so the activity feed and
+    // standup digest can report what actually got finished.
+    if (target && !target.isCompleted) {
+      logActivity({
+        type: 'priority_completed',
+        title: target.text,
+        context: 'Daily focus',
+        dedupeKey: `priority:${target.id}`,
+      });
+    }
   },
 
   removePriority: async (id) => {
