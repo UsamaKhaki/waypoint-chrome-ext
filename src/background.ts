@@ -242,7 +242,12 @@ async function pollGitHub() {
 }
 
 // ── Message passing ───────────────────────────────────────────────────────────
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // FETCH and API_FETCH are open proxies that run with the extension's host
+  // permissions. Only accept messages from our own pages (new tab, palette),
+  // never from content scripts running inside arbitrary websites.
+  if (!sender.url?.startsWith(chrome.runtime.getURL(''))) return;
+
   if (msg.type === 'POLL_NOW') {
     pollGitHub()
       .then(() => sendResponse({ ok: true }))

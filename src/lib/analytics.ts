@@ -1,7 +1,8 @@
 import posthog from 'posthog-js';
 
 export const PH_KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
-export const PH_HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com';
+export const PH_HOST =
+  (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com';
 
 export function initAnalytics() {
   if (!PH_KEY) return;
@@ -16,24 +17,11 @@ export function initAnalytics() {
     // Autocapture catches rage clicks and dead clicks automatically
     autocapture: true,
 
-    // Session replay — critical for rage/dead click visibility
+    // Session replay, for rage/dead click visibility. Every input is masked:
+    // users type API tokens, request headers and bodies, and notes into this
+    // app, and a name/placeholder heuristic cannot catch all of them.
     session_recording: {
-      maskAllInputs: false,
-      maskInputOptions: {
-        password: true,
-        // Mask fields likely to contain tokens/API keys
-      },
-      // Mask inputs that have token-related names/classes
-      maskInputFn(text, element) {
-        const el = element as HTMLInputElement | undefined;
-        const name = (el?.name ?? '').toLowerCase();
-        const placeholder = (el?.placeholder ?? '').toLowerCase();
-        if (name.includes('token') || name.includes('key') || name.includes('secret') ||
-            placeholder.includes('token') || placeholder.includes('key') || placeholder.includes('secret')) {
-          return '*'.repeat(text.length);
-        }
-        return text;
-      },
+      maskAllInputs: true,
     },
 
     loaded(ph) {
