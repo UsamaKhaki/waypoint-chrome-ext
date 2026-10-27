@@ -14,6 +14,8 @@ function removeCrossOrigin(): Plugin {
 export default defineConfig({
   plugins: [react(), removeCrossOrigin()],
   base: '',
+  server: { port: 6301, strictPort: true },
+  preview: { port: 6301, strictPort: true },
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },

@@ -33,5 +33,13 @@ test-results/
 playwright-report/
 coverage/
 
-# Local tool settings
-.claude/settings.local.json
+# AI tool files
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.cursor/
+.cursorrules
+.windsurfrules
+.github/copilot-instructions.md
+.aider*
