@@ -57,17 +57,21 @@ function rawGet<T>(key: StorageKey, area: ChromeArea): Promise<T | undefined> {
  * fall back to local so the app never loses data — a "soft demotion" that
  * keeps the feature working, just without cross-device sync for that item.
  */
-async function writeWithFallback(key: StorageKey, value: unknown, area: ChromeArea): Promise<void> {
-  return new Promise<void>((resolve) => {
+async function writeWithFallback(
+  key: StorageKey,
+  value: unknown,
+  area: ChromeArea
+): Promise<ChromeArea> {
+  return new Promise<ChromeArea>((resolve) => {
     chrome.storage[area].set({ [key]: value }, () => {
       const err = chrome.runtime.lastError;
       if (err && area === 'sync') {
         console.warn(
           `[storage] sync write for "${key}" failed (${err.message}); falling back to local.`
         );
-        chrome.storage.local.set({ [key]: value }, () => resolve());
+        chrome.storage.local.set({ [key]: value }, () => resolve('local'));
       } else {
-        resolve();
+        resolve(area);
       }
     });
   });
@@ -99,7 +103,8 @@ export const storage = {
 
   async set<T>(key: StorageKey, value: T): Promise<void> {
     if (hasChrome()) {
-      return writeWithFallback(key, value, areaFor(key));
+      await writeWithFallback(key, value, areaFor(key));
+      return;
     }
     return new Promise((resolve) => {
       localStorage.setItem(key, JSON.stringify(value));
@@ -233,9 +238,11 @@ export const storage = {
     for (const key of SYNC_KEYS) {
       const value = await rawGet<unknown>(key, from);
       if (value === undefined) continue;
-      await writeWithFallback(key, value, to);
+      const landedIn = await writeWithFallback(key, value, to);
       // Only drop the source copy if the destination write actually landed
-      // there (sync writes can soft-demote to local under quota).
+      // there. A sync write that hits quota soft-demotes to local, which is
+      // the source area when enabling, so removing it would delete the data.
+      if (landedIn !== to) continue;
       await new Promise<void>((resolve) => chrome.storage[from].remove(key, () => resolve()));
     }
 
