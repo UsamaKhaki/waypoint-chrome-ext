@@ -1,193 +1,133 @@
-# DevFlow Workspace
+# Waypoint
 
-> Developer productivity command center — Chrome Extension (Manifest V3)
+A Chrome extension (Manifest V3) that replaces the new tab page with a workspace for developers: bookmarks, open pull requests, tickets, calendar, snippets, tab sessions and small dev tools in one keyboard-driven page.
 
-A production-grade Chrome extension that replaces the default new tab with a powerful developer dashboard inspired by Linear, Raycast, Arc, and Notion.
-
----
+It is built with React, TypeScript and Vite, and runs entirely in the browser. There is no backend: data lives in `chrome.storage`, and integrations call each service's API directly with tokens the user provides.
 
 ## Features
 
-- **⌘K Command Palette** — Raycast-style fuzzy search across bookmarks, environments, and commands
-- **Smart Bookmarks** — Categorized links with drag-drop, inline editing, favorites, and search
-- **Environment Switcher** — Local/Stage/Prod cards with health indicators and production warnings
-- **GitHub Hub** — Repo shortcuts, branch templates, PR templates, quick GitHub links
-- **Daily Focus Widget** — Priorities checklist, notes, and goals with auto-save
-- **Workspace Modes** — 9 focus modes (Frontend, Backend, DevOps, Deep Work, etc.) that filter the UI
-- **Tab Manager** — Duplicate detector, session save/restore, bulk tab actions
-- **Keyboard-First Navigation** — Full shortcut system, chord shortcuts, zero mouse required
-- **Pomodoro Timer** — Built-in focus timer with session tracking
-- **Quick Notes** — Floating sticky notes accessible anywhere
-- **Import/Export** — Back up and restore all your data
-- **Dark Mode First** — Polished glassmorphism UI built for long sessions
+**Workspace**
 
----
+- Overview dashboard with a configurable widget layout (open PRs, CI status, Jira/Linear issues, calendar, Slack, Notion, stand-up digest).
+- Bookmarks backed by real Chrome bookmarks, with categories, tags, favorites, drag-and-drop ordering and environment labels (local/stage/production) that warn before opening production links.
+- Workspace modes (Frontend, Backend, DevOps, Deep Work and others) that filter which categories and environments are shown. Custom modes are supported.
 
-## Tech Stack
+**Connectors**
 
-| Layer       | Technology                             |
-| ----------- | -------------------------------------- |
-| Framework   | React 18.3.1 + TypeScript 5.6          |
-| Build       | Vite 6.0                               |
-| Styling     | TailwindCSS 3.4 + CSS Variables        |
-| State       | Zustand 5.0                            |
-| Animation   | Framer Motion 12                       |
-| Drag & Drop | @dnd-kit/core 6 + @dnd-kit/sortable 10 |
-| Search      | Fuse.js 7.3                            |
-| Icons       | Lucide React 1.14                      |
-| Extension   | Chrome Manifest V3                     |
+- GitHub (personal access token): repositories, pull requests awaiting review, CI status, branch and PR templates. A background alarm polls for new review requests and shows a notification.
+- Linear, Jira, Slack and Notion (API tokens).
+- Google Calendar through `chrome.identity` OAuth (read-only scope).
 
----
+**Tools**
 
-## Project Structure
+- Command palette (`Cmd/Ctrl+K`) with fuzzy search (Fuse.js) over bookmarks, commands and snippets. It also opens as an overlay on any web page through a content script.
+- Snippets with variables, saved tab sessions, duplicate-tab detection and bulk tab actions, focus timer, daily priorities and an activity log.
+- API client (requests, environments with `{{variable}}` interpolation, history), sent through the service worker to avoid page CORS.
+- Toolbox of offline utilities: JSON formatter, JWT decoder, Base64, URL encoding, hashing, UUIDs, timestamps, cron explainer, case converter, colour contrast and text diff.
+- Radar: status of common developer services (Statuspage APIs) and latest versions of watched npm/PyPI packages.
+- Saved SSH hosts and database connections with copyable commands.
+
+## Stack
+
+| Area          | Choice                                                                               |
+| ------------- | ------------------------------------------------------------------------------------ |
+| UI            | React 18, TypeScript (strict), Tailwind CSS, Framer Motion, Lucide icons             |
+| State         | Zustand, one store per feature domain                                                |
+| Drag and drop | dnd-kit                                                                              |
+| Search        | Fuse.js                                                                              |
+| Build         | Vite 6 with multiple entry points (new tab, palette, service worker, content script) |
+| Monitoring    | Sentry (errors), PostHog (product analytics, session replay). Both are optional.     |
+| Testing       | Vitest (unit), Playwright (end-to-end against the built extension)                   |
+| Tooling       | ESLint, Prettier, Husky and lint-staged, GitHub Actions                              |
+
+## Architecture
 
 ```
 src/
-├── components/ui/        # Reusable UI primitives (Button, Input, Badge, Modal, Kbd, Tooltip, Spinner)
-├── features/
-│   ├── bookmarks/        # Smart bookmark management (cards, sections, forms)
-│   ├── command-palette/  # CMD+K command palette with Fuse.js fuzzy search
-│   ├── environments/     # Environment switcher cards (local/stage/prod)
-│   ├── focus-modes/      # Workspace mode selector and indicator
-│   ├── github/           # GitHub productivity hub (repos, branches, PRs, quick links)
-│   ├── tabs/             # Tab chaos reduction (duplicates, sessions, bulk actions)
-│   └── widgets/          # Daily focus widget
-├── hooks/                # useKeyboardShortcuts, useClickOutside, useLocalStorage
-├── layouts/              # MainLayout, SidebarNav, TopBar
-├── lib/                  # Shared utilities (cn helper)
-├── services/             # Chrome storage wrapper with localStorage dev fallback
-├── store/                # Zustand stores (bookmarks, environments, github, tabs, workspace, settings, commandPalette)
-├── types/                # TypeScript interfaces
-├── constants/            # App constants, workspace configs, keyboard shortcuts, storage keys
-└── utils/                # Utility functions
+  main.tsx, App.tsx      New tab entry: boots storage, stores and section routing
+  palette.tsx            Command palette entry, loaded in an iframe by content.ts
+  background.ts          Service worker: GitHub polling, notifications, fetch proxy
+  content.ts             Injects the palette overlay on Cmd/Ctrl+K
+  features/<name>/       One folder per feature (components plus a barrel index.ts)
+  store/                 Zustand stores; each loads from and persists to storage
+  services/              Storage wrapper and API clients (GitHub, Jira, Linear, ...)
+  components/ui/         Small shared primitives (Button, Modal, Badge, ...)
+  lib/                   Sentry and PostHog setup
 ```
 
----
+Notes on the parts that are not obvious from the folder names:
 
-## Getting Started
+- **Storage** (`src/services/storage.ts`) routes each key to `chrome.storage.sync` or `chrome.storage.local`. Small user configuration (settings, layouts, templates, snippets) syncs across the user's Chrome profiles; tokens, caches and large data stay local. Sync writes that exceed Chrome's quota fall back to local. Outside the extension (the Vite dev server) it falls back to `localStorage`.
+- **Network calls** that would fail CORS from the new tab page go through the service worker (`FETCH` and `API_FETCH` messages). The worker only accepts these messages from the extension's own pages.
+- **Integrations** are client-side only. Tokens are stored in `chrome.storage.local` on the user's device and are never synced.
 
-### Prerequisites
+## Getting started
 
-- Node.js 18+
-- npm 9+
-- Google Chrome
-
-### Development
+Requirements: Node.js 22 and npm, Google Chrome.
 
 ```bash
-# Install dependencies
-npm install
-
-# Start dev server (for UI previewing in the browser)
-npm run dev
-
-# Build the extension
+npm ci
+cp .env.example .env    # optional, see below
 npm run build
-
-# Lint
-npm run lint
 ```
 
-### Load in Chrome
+Then open `chrome://extensions`, enable Developer mode, choose **Load unpacked** and select the `dist/` folder. Open a new tab.
 
-1. Run `npm run build` — this creates the `dist/` folder
-2. Open Chrome and navigate to `chrome://extensions`
-3. Enable **Developer Mode** (top right toggle)
-4. Click **Load unpacked**
-5. Select the `dist/` folder
-6. Open a new tab — DevFlow Workspace appears
+`npm run dev` serves the UI at a local URL for fast iteration. Chrome-only APIs (tabs, bookmarks, identity) are unavailable there, and storage uses `localStorage`.
 
-### Development Tips
+### Environment variables
 
-- The app uses `localStorage` as a fallback when `chrome.storage` is unavailable (i.e., in the Vite dev server). This lets you develop in the browser without loading the extension.
-- After making changes, run `npm run build` and click the reload button on `chrome://extensions`.
-- Husky + lint-staged are configured to auto-lint and auto-format on every commit.
+All are optional. When a value is empty, that integration is disabled.
 
----
+| Name                | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `VITE_SENTRY_DSN`   | Sentry error reporting                         |
+| `VITE_POSTHOG_KEY`  | PostHog analytics and session replay           |
+| `VITE_POSTHOG_HOST` | PostHog ingest host (defaults to the US cloud) |
 
-## Keyboard Shortcuts
+These are read at build time and end up in the bundle, as is normal for client-side keys. Do not put server secrets here.
 
-| Shortcut        | Action                        |
-| --------------- | ----------------------------- |
-| `⌘K` / `Ctrl+K` | Open Command Palette          |
-| `/`             | Open Command Palette (search) |
-| `⌘1`            | Bookmarks                     |
-| `⌘2`            | Environments                  |
-| `⌘3`            | GitHub Hub                    |
-| `⌘4`            | Daily Focus                   |
-| `⌘5`            | Tab Manager                   |
-| `⌘6`            | Settings                      |
-| `G → H`         | Go to GitHub Hub              |
-| `G → P`         | Go to GitHub (Pull Requests)  |
-| `E → L`         | Go to Local environment       |
-| `E → S`         | Go to Stage environment       |
-| `E → P`         | Go to Production environment  |
-| `ESC`           | Close modal / palette         |
-| `↑ ↓`           | Navigate palette results      |
-| `↵`             | Execute selected command      |
+The Google OAuth client ID is set in `public/manifest.json` (`oauth2.client_id`). To use Google Calendar from your own build, create a Chrome extension OAuth client in Google Cloud for your extension ID and replace it.
 
----
+## Scripts
 
-## Workspace Modes
+| Command                           | What it does                                     |
+| --------------------------------- | ------------------------------------------------ |
+| `npm run dev`                     | Vite dev server                                  |
+| `npm run build`                   | Typecheck, then build the extension into `dist/` |
+| `npm run lint`                    | ESLint                                           |
+| `npm run typecheck`               | `tsc -b`                                         |
+| `npm run format` / `format:check` | Prettier on `src/` and `e2e/`                    |
+| `npm test`                        | Vitest unit tests                                |
+| `npm run test:e2e`                | Playwright tests (run `npm run build` first)     |
 
-Switch modes via the mode selector in the top bar (or ⌘K → "mode"):
+## Testing
 
-| Mode                  | Best For                                                     |
-| --------------------- | ------------------------------------------------------------ |
-| 🌐 Default            | Show everything                                              |
-| 🎨 Frontend           | UI/CSS/design work — shows local, stage, design bookmarks    |
-| ⚙️ Backend            | API/server development — shows all environments + monitoring |
-| 🚀 DevOps             | Infrastructure & deployments — CI/CD, monitoring, prod       |
-| 🐛 Debugging          | Troubleshooting & logs — monitoring + all environments       |
-| 📋 Sprint Planning    | Tickets & project management — hides all environments        |
-| 🔥 Production Support | Incident response — monitoring, prod/stage only              |
-| 🤝 Meeting            | Collaboration mode — docs and company tools                  |
-| 🧘 Deep Work          | Distraction-free focus — docs, local-dev, Pomodoro widget    |
+- **Unit tests** (`src/**/*.test.ts`) cover the storage layer (sync/local routing, quota fallback, cloud sync toggling), the environments-to-bookmarks migration, the API client and the Radar pollers. They run in Node with a small in-memory fake of `chrome.storage`.
+- **End-to-end tests** (`e2e/`) load the built extension into Chromium with Playwright and mock every external API. Tests are tagged `@P0`/`@P1` by priority (`npm run test:e2e:p0`).
 
----
+CI (`.github/workflows/ci.yml`) runs lint, format check, typecheck, unit tests and the build on every push and pull request. The Playwright suite runs in a separate workflow.
 
-## Bookmark Categories
+## Permissions and data
 
-Bookmarks are organized into 12 built-in categories:
+| Permission                  | Used for                                            |
+| --------------------------- | --------------------------------------------------- |
+| `storage`                   | All user data                                       |
+| `tabs`, `tabGroups`         | Tab manager, sessions, duplicate detection          |
+| `bookmarks`                 | Bookmarks panel (reads and writes Chrome bookmarks) |
+| `identity`                  | Google sign-in for Calendar                         |
+| `alarms`, `notifications`   | Background polling for GitHub review requests       |
+| `contextMenus`              | Context menu entries                                |
+| Content script on all sites | The `Cmd/Ctrl+K` palette overlay                    |
 
-`github` · `pull-requests` · `ci-cd` · `company-tools` · `monitoring` · `documentation` · `local-dev` · `stage` · `production` · `design` · `personal` · `custom`
+Data leaves the device only in these cases: requests to the services you connect, Chrome sync for the synced keys (if you are signed in to Chrome and cloud sync is on), and Sentry/PostHog when they are configured at build time. Session replay masks all form inputs.
 
-Visible categories update automatically when you switch Workspace Modes.
+## Status and limitations
 
----
+This is a working personal project, not a published Chrome Web Store listing.
 
-## Data & Privacy
-
-All data is stored locally using `chrome.storage.local`. Nothing is sent to any server. Use **Settings → Export Backup** to back up your data as JSON.
-
-**Permissions used:**
-
-| Permission  | Why                            |
-| ----------- | ------------------------------ |
-| `storage`   | Persist all user data locally  |
-| `tabs`      | Read open tabs for Tab Manager |
-| `bookmarks` | Access Chrome bookmark bar     |
-| `tabGroups` | Create and manage tab groups   |
-
----
-
-## Architecture Notes
-
-- **Zustand stores** each own a feature domain and sync to `chrome.storage.local` on every mutation via the services layer.
-- **Services layer** (`src/services/storage.ts`) abstracts chrome storage with a `localStorage` dev fallback so the app works in both the browser and the extension context.
-- **Feature-based structure** — each feature is self-contained with its own components, hooks, and barrel `index.ts` export.
-- **Workspace modes** filter visible sections at the store level via `config.visibleCategories` and `config.visibleEnvironments` defined in `src/constants/index.ts`.
-- **Command palette** uses Fuse.js for real-time fuzzy search; results are capped at 8 items and recent commands are tracked (last 5).
-- Architecture is prepared for future GitHub API, Jira, Slack, and cloud sync integrations.
-
----
-
-## Build Output
-
-```
-dist/index.html                   ~0.47 kB
-dist/assets/index-[hash].css     ~23 kB  (gzip: ~5 kB)
-dist/assets/index-[hash].js     ~414 kB  (gzip: ~127 kB)
-```
-
-Build completes in under 2 seconds with zero TypeScript or import errors.
+- **Pro plan is a stub.** The upgrade flow and Lemon Squeezy checkout links are placeholders, and license activation only checks a key prefix locally. There is no real payment or license validation.
+- **Content script on every page.** The palette overlay intercepts `Cmd/Ctrl+K` on all sites, which overrides sites that use the same shortcut.
+- **Unit test coverage is limited** to the storage layer and services. Components are covered only by the Playwright suite.
+- Some `react-hooks/exhaustive-deps` lint warnings remain on effects that call store actions.
+- The main bundle is about 650 kB before gzip. It loads from disk, so this matters less than on the web, but feature panels are not yet code-split.
