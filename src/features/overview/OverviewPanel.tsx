@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { forwardRef, useEffect, useState, useRef } from 'react';
 import { Command, SlidersHorizontal, Plus, CheckCircle2, Circle, Trash2, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBookmarksStore } from '@/store/bookmarks.store';
@@ -174,23 +174,21 @@ function PrioritiesPanel({ onNavigate }: { onNavigate: (s: string) => void }) {
 }
 
 // ── Left column section renderer ────────────────────────────────────────────
-function LeftSection({
-  id,
-  onNavigate,
-  bookmarks,
-  openPalette,
-  userName,
-}: {
-  id: OverviewSectionId;
-  onNavigate: (s: string) => void;
-  bookmarks: import('@/types').Bookmark[];
-  openPalette: () => void;
-  userName: string;
-}) {
+const LeftSection = forwardRef<
+  HTMLDivElement,
+  {
+    id: OverviewSectionId;
+    onNavigate: (s: string) => void;
+    bookmarks: import('@/types').Bookmark[];
+    openPalette: () => void;
+    userName: string;
+  }
+>(function LeftSection({ id, onNavigate, bookmarks, openPalette, userName }, ref) {
   switch (id) {
     case 'standup':
       return (
         <motion.div
+          ref={ref}
           key="standup"
           layout
           initial={{ opacity: 0 }}
@@ -226,6 +224,7 @@ function LeftSection({
     case 'quick-apps':
       return (
         <motion.div
+          ref={ref}
           key="quick-apps"
           layout
           initial={{ opacity: 0 }}
@@ -239,6 +238,7 @@ function LeftSection({
     case 'github-prs':
       return (
         <motion.div
+          ref={ref}
           key="github-prs"
           layout
           initial={{ opacity: 0 }}
@@ -252,6 +252,7 @@ function LeftSection({
     case 'cicd':
       return (
         <motion.div
+          ref={ref}
           key="cicd"
           layout
           initial={{ opacity: 0 }}
@@ -265,6 +266,7 @@ function LeftSection({
     case 'linear-issues':
       return (
         <motion.div
+          ref={ref}
           key="linear-issues"
           layout
           initial={{ opacity: 0 }}
@@ -278,6 +280,7 @@ function LeftSection({
     case 'jira-issues':
       return (
         <motion.div
+          ref={ref}
           key="jira-issues"
           layout
           initial={{ opacity: 0 }}
@@ -291,6 +294,7 @@ function LeftSection({
     case 'notion-pages':
       return (
         <motion.div
+          ref={ref}
           key="notion-pages"
           layout
           initial={{ opacity: 0 }}
@@ -304,6 +308,7 @@ function LeftSection({
     case 'calendar-events':
       return (
         <motion.div
+          ref={ref}
           key="calendar-events"
           layout
           initial={{ opacity: 0 }}
@@ -317,6 +322,7 @@ function LeftSection({
     case 'integrations':
       return (
         <motion.div
+          ref={ref}
           key="integrations"
           layout
           initial={{ opacity: 0 }}
@@ -330,6 +336,7 @@ function LeftSection({
     case 'slack-unread':
       return (
         <motion.div
+          ref={ref}
           key="slack-unread"
           layout
           initial={{ opacity: 0 }}
@@ -345,6 +352,7 @@ function LeftSection({
       if (pinned.length === 0) return null;
       return (
         <motion.div
+          ref={ref}
           key="pinned"
           layout
           initial={{ opacity: 0 }}
@@ -379,7 +387,7 @@ function LeftSection({
     default:
       return null;
   }
-}
+});
 
 // ── Main panel ──────────────────────────────────────────────────────────────
 export function OverviewPanel({ onNavigate }: OverviewPanelProps) {
