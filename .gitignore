@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
+# Test output
+test-results/
+playwright-report/
+coverage/
+
+# Local tool settings
+.claude/settings.local.json
