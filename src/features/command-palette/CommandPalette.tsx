@@ -122,7 +122,7 @@ function SectionLabel({ icon: Icon, label }: { icon: React.ElementType; label: s
 
 // ── Main Component ────────────────────────────────────────────────────────
 export function CommandPalette() {
-  const { isOpen, query, commands, recentCommands, open, close, toggle, setQuery, executeCommand } =
+  const { isOpen, query, commands, recentCommands, close, toggle, setQuery, executeCommand } =
     useCommandPaletteStore();
   const bookmarks = useBookmarksStore((s) => s.bookmarks);
   const environments = useEnvironmentsStore((s) => s.environments);
@@ -311,9 +311,15 @@ export function CommandPalette() {
             </div>
 
             {/* Results */}
-            <div data-testid="command-palette-results" className="max-h-[420px] overflow-y-auto py-2 px-2">
+            <div
+              data-testid="command-palette-results"
+              className="max-h-[420px] overflow-y-auto py-2 px-2"
+            >
               {isEmpty ? (
-                <div data-testid="command-palette-empty" className="flex flex-col items-center justify-center py-10 text-muted">
+                <div
+                  data-testid="command-palette-empty"
+                  className="flex flex-col items-center justify-center py-10 text-muted"
+                >
                   <Search className="h-8 w-8 mb-3 opacity-40" />
                   <p className="text-sm">No results found</p>
                   <p className="text-xs mt-1 opacity-70">Try a different search term</p>

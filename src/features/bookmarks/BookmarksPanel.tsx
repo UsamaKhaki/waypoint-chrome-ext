@@ -15,7 +15,6 @@ import {
   ExternalLink,
   AlertTriangle,
 } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useBookmarksStore } from '@/store/bookmarks.store';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';

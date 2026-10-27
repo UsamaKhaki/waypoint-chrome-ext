@@ -5,7 +5,6 @@ import {
   AlertCircle,
   Eye,
   Bell,
-  ExternalLink,
   Clock,
   MessageSquare,
   Pencil,

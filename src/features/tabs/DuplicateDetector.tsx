@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { AlertCircle, Trash2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useOpenTabs, type OpenTab } from './useOpenTabs';
-import { cn } from '@/lib/utils';
 import { truncate } from '@/utils';
 
 function findDuplicates(tabs: OpenTab[]): Map<string, OpenTab[]> {

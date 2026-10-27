@@ -80,52 +80,6 @@ function hexToHsl(hex: string): string {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-// ── Chrome theme detection ──────────────────────────────────────────────────
-
-// All known variable names Chrome injects into NTP pages across versions
-const NTP_BG_VARS = [
-  '--color-ntp-background',
-  '--ntp-bg-color',
-  '--ntp-background-override-color',
-  '--color-ntp-background-override',
-  '--sys-color-base',
-  '--color-sys-base',
-  '--sys-color-surface',
-];
-
-const NTP_ACCENT_VARS = ['--color-ntp-link', '--ntp-link-color', '--color-ntp-header'];
-
-function readChromeBackground(): [number, number, number] | null {
-  const cs = getComputedStyle(document.documentElement);
-
-  // 1. Try CSS custom properties Chrome injects on :root
-  for (const v of NTP_BG_VARS) {
-    const val = cs.getPropertyValue(v).trim();
-    if (val) {
-      const rgb = parseColor(val);
-      if (rgb) return rgb;
-    }
-  }
-
-  // 2. Read body's computed background-color — Chrome sets this directly for NTP themes.
-  //    Our CSS no longer sets background-color on body, so this is purely Chrome's value.
-  const bodyBg = getComputedStyle(document.body).backgroundColor;
-  const rgb = parseColor(bodyBg);
-  if (rgb) return rgb;
-
-  // 3. Look for Chrome-injected <style> tags in <head> and parse background-color
-  const styles = document.head.querySelectorAll('style');
-  for (const style of styles) {
-    const match = /background(?:-color)?\s*:\s*([^;}\n]+)/i.exec(style.textContent ?? '');
-    if (match) {
-      const rgb2 = parseColor(match[1].trim());
-      if (rgb2) return rgb2;
-    }
-  }
-
-  return null;
-}
-
 function applyBackground(rgb: [number, number, number]) {
   const hsl = rgbToHslStr(...rgb);
   const [h, s, lRaw] = hsl.split(' ');
@@ -137,27 +91,6 @@ function applyBackground(rgb: [number, number, number]) {
   root.style.setProperty('--surface-elevated', `${h} ${s} ${Math.min(l + 6, 94)}%`);
   root.style.setProperty('--border', `${h} ${s} ${Math.min(l + 13, 94)}%`);
   root.style.setProperty('--border-subtle', `${h} ${s} ${Math.min(l + 9, 94)}%`);
-}
-
-function tryApplyChromeTheme(): boolean {
-  const rgb = readChromeBackground();
-  if (!rgb) return false;
-  applyBackground(rgb);
-
-  // Try to pick up accent from Chrome NTP link color
-  const cs = getComputedStyle(document.documentElement);
-  for (const v of NTP_ACCENT_VARS) {
-    const val = cs.getPropertyValue(v).trim();
-    if (val) {
-      const accentRgb = parseColor(val);
-      if (accentRgb) {
-        document.documentElement.style.setProperty('--accent', rgbToHslStr(...accentRgb));
-        break;
-      }
-    }
-  }
-
-  return true;
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────────

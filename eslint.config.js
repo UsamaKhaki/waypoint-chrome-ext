@@ -69,6 +69,14 @@ export default [
     },
   },
 
+  // Node build scripts
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { console: 'readonly', process: 'readonly' },
+    },
+  },
+
   // Prettier must be last — disables conflicting formatting rules
   prettierConfig,
 

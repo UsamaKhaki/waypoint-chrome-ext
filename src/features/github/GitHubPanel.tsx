@@ -5,7 +5,7 @@ import { GitHubDashboard } from './GitHubDashboard';
 import { Spinner } from '@/components/ui/Spinner';
 
 export function GitHubPanel() {
-  const { isConnected, isInitializing, loadToken, user } = useGitHubAuthStore();
+  const { isConnected, isInitializing, loadToken } = useGitHubAuthStore();
 
   useEffect(() => {
     loadToken();

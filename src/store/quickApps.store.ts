@@ -37,7 +37,7 @@ export const useQuickAppsStore = create<QuickAppsState>((set, get) => ({
 
   load: async () => {
     set({ isLoading: true });
-    const saved = await storage.get<QuickApp[]>('quickApps' as any);
+    const saved = await storage.get<QuickApp[]>('quickApps');
     set({ apps: saved ?? DEFAULT_APPS, isLoading: false });
   },
 
@@ -45,23 +45,23 @@ export const useQuickAppsStore = create<QuickAppsState>((set, get) => ({
     const newApp: QuickApp = { ...app, id: generateId(), order: get().apps.length };
     const updated = [...get().apps, newApp];
     set({ apps: updated });
-    await storage.set('quickApps' as any, updated);
+    await storage.set('quickApps', updated);
   },
 
   remove: async (id) => {
     const updated = get().apps.filter((a) => a.id !== id);
     set({ apps: updated });
-    await storage.set('quickApps' as any, updated);
+    await storage.set('quickApps', updated);
   },
 
   update: async (id, updates) => {
     const updated = get().apps.map((a) => (a.id === id ? { ...a, ...updates } : a));
     set({ apps: updated });
-    await storage.set('quickApps' as any, updated);
+    await storage.set('quickApps', updated);
   },
 
   reorder: async (apps) => {
     set({ apps });
-    await storage.set('quickApps' as any, apps);
+    await storage.set('quickApps', apps);
   },
 }));

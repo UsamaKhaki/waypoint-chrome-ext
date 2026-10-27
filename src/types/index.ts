@@ -257,4 +257,5 @@ export type StorageKey =
   | 'apiEnvironments'
   | 'sshHosts'
   | 'dbConnections'
-  | 'watchedPackages';
+  | 'watchedPackages'
+  | 'quickApps';

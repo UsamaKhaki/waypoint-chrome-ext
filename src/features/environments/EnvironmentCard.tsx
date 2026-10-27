@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import {
   ExternalLink,
   Copy,
-  Plus,
   Trash2,
   Edit2,
   AlertTriangle,
@@ -108,7 +107,7 @@ export function EnvironmentCard({ environment, onEdit }: EnvironmentCardProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Badge variant={envBadgeVariant as any}>{environment.name}</Badge>
+            <Badge variant={envBadgeVariant}>{environment.name}</Badge>
             <Activity className={cn('h-3.5 w-3.5', healthColor)} />
             {isProduction && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
           </div>

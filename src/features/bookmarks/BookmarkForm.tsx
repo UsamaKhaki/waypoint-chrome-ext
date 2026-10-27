@@ -73,7 +73,7 @@ export function BookmarkForm({ isOpen, onClose, bookmark, defaultCategory }: Boo
     if (bookmark) {
       await update(bookmark.id, payload);
     } else {
-      await add(payload as any);
+      await add(payload);
     }
     onClose();
   };
@@ -162,7 +162,9 @@ export function BookmarkForm({ isOpen, onClose, bookmark, defaultCategory }: Boo
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button data-testid="bookmark-form-save" onClick={handleSubmit}>{bookmark ? 'Save Changes' : 'Add Bookmark'}</Button>
+          <Button data-testid="bookmark-form-save" onClick={handleSubmit}>
+            {bookmark ? 'Save Changes' : 'Add Bookmark'}
+          </Button>
         </div>
       </div>
     </Modal>

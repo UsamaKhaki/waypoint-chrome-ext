@@ -16,14 +16,30 @@ export interface NotionPage {
   parent: { type: string };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function extractTitle(result: any): string {
+interface NotionRichText {
+  plain_text: string;
+}
+
+/** The subset of a Notion search result (page or database) that we read. */
+interface NotionSearchResult {
+  id: string;
+  url: string;
+  created_time: string;
+  last_edited_time: string;
+  object: 'page' | 'database';
+  title?: NotionRichText[];
+  properties?: Record<string, { type: string; title?: NotionRichText[] }>;
+  icon?: NotionPage['icon'];
+  parent?: { type: string };
+}
+
+function extractTitle(result: NotionSearchResult): string {
   if (result.object === 'database') {
     return result.title?.[0]?.plain_text ?? 'Untitled';
   }
   // page: search properties for the title field
   if (result.properties) {
-    for (const value of Object.values(result.properties) as any[]) {
+    for (const value of Object.values(result.properties)) {
       if (value.type === 'title') {
         return value.title?.[0]?.plain_text ?? 'Untitled';
       }
@@ -32,8 +48,7 @@ function extractTitle(result: any): string {
   return 'Untitled';
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapPage(result: any): NotionPage {
+function mapPage(result: NotionSearchResult): NotionPage {
   return {
     id: result.id,
     url: result.url,
@@ -77,12 +92,12 @@ export class NotionApiService {
       page_size: 20,
       ...(query ? { query } : {}),
     };
-    const data = await this.fetch<{ results: unknown[] }>('/search', 'POST', body);
+    const data = await this.fetch<{ results: NotionSearchResult[] }>('/search', 'POST', body);
     return data.results.map(mapPage);
   }
 
   async getDatabases(): Promise<NotionPage[]> {
-    const data = await this.fetch<{ results: unknown[] }>('/search', 'POST', {
+    const data = await this.fetch<{ results: NotionSearchResult[] }>('/search', 'POST', {
       filter: { value: 'database', property: 'object' },
       sort: { direction: 'descending', timestamp: 'last_edited_time' },
       page_size: 10,
@@ -91,7 +106,7 @@ export class NotionApiService {
   }
 
   async getRecentPages(): Promise<NotionPage[]> {
-    const data = await this.fetch<{ results: unknown[] }>('/search', 'POST', {
+    const data = await this.fetch<{ results: NotionSearchResult[] }>('/search', 'POST', {
       filter: { value: 'page', property: 'object' },
       sort: { direction: 'descending', timestamp: 'last_edited_time' },
       page_size: 20,
