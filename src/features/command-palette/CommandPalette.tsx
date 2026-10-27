@@ -129,7 +129,6 @@ export function CommandPalette() {
   const userName = useSettingsStore((s) => s.settings.userName);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // ── CMD+K global listener ──────────────────────────────────────────────
   useEffect(() => {
@@ -143,12 +142,10 @@ export function CommandPalette() {
     return () => window.removeEventListener('keydown', handler);
   }, [toggle]);
 
-  // ── Focus input on open ────────────────────────────────────────────────
+  // The input mounts with the palette and uses autoFocus, so keystrokes typed
+  // right after Cmd+K land in the search field instead of being dropped.
   useEffect(() => {
-    if (isOpen) {
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
+    if (isOpen) setSelectedIndex(0);
   }, [isOpen]);
 
   // ── Fuse search ────────────────────────────────────────────────────────
@@ -287,7 +284,7 @@ export function CommandPalette() {
               <Search className="h-4 w-4 text-muted flex-shrink-0" />
               <input
                 data-testid="command-palette-input"
-                ref={inputRef}
+                autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={
