@@ -38,7 +38,9 @@ test.describe('Command Palette', () => {
   test('empty query shows navigation commands @P0', async ({ page }) => {
     await page.keyboard.press(`${modifier}+k`);
     await expect(page.getByTestId('command-palette-results')).toBeVisible();
-    const results = page.getByTestId('command-palette-results').locator('[data-testid^="palette-result-"]');
+    const results = page
+      .getByTestId('command-palette-results')
+      .locator('[data-testid^="palette-result-"]');
     await expect(results).not.toHaveCount(0);
   });
 

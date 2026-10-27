@@ -30,11 +30,15 @@ test.describe('Sessions panel', () => {
     await page.getByTestId('session-save-btn').click();
 
     // A session card should appear
-    await expect(page.locator('[data-testid^="session-card-"]').filter({ hasText: 'My Test Session' })).toBeVisible();
+    await expect(
+      page.locator('[data-testid^="session-card-"]').filter({ hasText: 'My Test Session' })
+    ).toBeVisible();
 
     // Verify it's in storage — SessionsPanel uses useSessionsStore which writes to 'sessions'
     const stored = await getStorage<unknown[]>(page, 'sessions');
-    expect(stored?.some((s: unknown) => (s as { name: string }).name === 'My Test Session')).toBe(true);
+    expect(stored?.some((s: unknown) => (s as { name: string }).name === 'My Test Session')).toBe(
+      true
+    );
   });
 
   test('delete button removes a session @P1', async ({ page }) => {

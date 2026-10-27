@@ -5,9 +5,20 @@ const isMac = process.platform === 'darwin';
 
 test.describe('Sidebar navigation', () => {
   const sections = [
-    'overview', 'bookmarks', 'environments', 'github',
-    'linear', 'jira', 'slack', 'notion', 'google-calendar',
-    'focus', 'tabs', 'snippets', 'sessions', 'settings',
+    'overview',
+    'bookmarks',
+    'environments',
+    'github',
+    'linear',
+    'jira',
+    'slack',
+    'notion',
+    'google-calendar',
+    'focus',
+    'tabs',
+    'snippets',
+    'sessions',
+    'settings',
   ];
 
   for (const section of sections) {

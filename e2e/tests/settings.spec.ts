@@ -9,7 +9,15 @@ test.describe('Settings panel', () => {
 
   test('renders all section tabs @P1', async ({ page }) => {
     await expect(page.getByTestId('settings-panel')).toBeVisible();
-    const sections = ['subscription', 'profile', 'appearance', 'notifications', 'connectors', 'data', 'about'];
+    const sections = [
+      'subscription',
+      'profile',
+      'appearance',
+      'notifications',
+      'connectors',
+      'data',
+      'about',
+    ];
     for (const section of sections) {
       await expect(page.getByTestId(`settings-section-${section}`)).toBeVisible();
     }

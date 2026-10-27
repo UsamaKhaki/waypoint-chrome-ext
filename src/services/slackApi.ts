@@ -9,7 +9,11 @@ export class SlackApiService {
     this.token = token;
   }
 
-  private async fetch<T>(method: string, params?: Record<string, string>, _retries = 1): Promise<T> {
+  private async fetch<T>(
+    method: string,
+    params?: Record<string, string>,
+    _retries = 1
+  ): Promise<T> {
     const body = new URLSearchParams({ token: this.token, ...params }).toString();
     let rawData: unknown;
     try {

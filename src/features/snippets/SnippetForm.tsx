@@ -147,7 +147,9 @@ export function SnippetForm({ isOpen, onClose, snippet, prefill }: SnippetFormPr
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button data-testid="snippet-form-save" onClick={handleSubmit}>{snippet ? 'Save Changes' : 'Add Snippet'}</Button>
+          <Button data-testid="snippet-form-save" onClick={handleSubmit}>
+            {snippet ? 'Save Changes' : 'Add Snippet'}
+          </Button>
         </div>
       </div>
     </Modal>

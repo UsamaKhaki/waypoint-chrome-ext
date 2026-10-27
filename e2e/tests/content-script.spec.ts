@@ -14,7 +14,10 @@ const TEST_URL = 'https://waypoint-e2e-test.internal/';
 async function navigateToTestPage(chromeContext: import('@playwright/test').BrowserContext) {
   const page = await chromeContext.newPage();
   await page.route(TEST_URL, (route) =>
-    route.fulfill({ body: '<html><body><h1>E2E Test Page</h1></body></html>', contentType: 'text/html' })
+    route.fulfill({
+      body: '<html><body><h1>E2E Test Page</h1></body></html>',
+      contentType: 'text/html',
+    })
   );
   await page.goto(TEST_URL);
   return page;

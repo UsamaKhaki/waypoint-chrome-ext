@@ -50,15 +50,18 @@ function GlobalPalette() {
   const close = () => window.parent.postMessage({ type: 'WAYPOINT_PALETTE_CLOSE' }, '*');
 
   const copySnippet = useCallback((snippet: SnippetItem) => {
-    navigator.clipboard.writeText(snippet.content).then(() => {
-      setCopied(snippet.id);
-      setTimeout(() => {
-        setCopied(null);
-        close();
-      }, 1000);
-    }).catch((err: Error) => {
-      Sentry.captureException(err, { tags: { context: 'palette', action: 'clipboard_write' } });
-    });
+    navigator.clipboard
+      .writeText(snippet.content)
+      .then(() => {
+        setCopied(snippet.id);
+        setTimeout(() => {
+          setCopied(null);
+          close();
+        }, 1000);
+      })
+      .catch((err: Error) => {
+        Sentry.captureException(err, { tags: { context: 'palette', action: 'clipboard_write' } });
+      });
   }, []);
 
   useEffect(() => {
@@ -221,7 +224,11 @@ const root = document.getElementById('palette-root')!;
 createRoot(root).render(
   <StrictMode>
     <Sentry.ErrorBoundary
-      fallback={<div style={{ color: 'hsl(213 8% 46%)', fontSize: 13, padding: 24, textAlign: 'center' }}>Palette unavailable</div>}
+      fallback={
+        <div style={{ color: 'hsl(213 8% 46%)', fontSize: 13, padding: 24, textAlign: 'center' }}>
+          Palette unavailable
+        </div>
+      }
     >
       <GlobalPalette />
     </Sentry.ErrorBoundary>

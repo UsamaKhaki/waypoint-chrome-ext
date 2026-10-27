@@ -93,11 +93,7 @@ export const useJiraAuthStore = create<JiraAuthState>((set, get) => ({
     if (!credentials) return;
     set({ isLoading: true, error: null });
     try {
-      const api = new JiraApiService(
-        credentials.domain,
-        credentials.email,
-        credentials.apiToken
-      );
+      const api = new JiraApiService(credentials.domain, credentials.email, credentials.apiToken);
       const [user, assignedIssues, inProgressIssues, reportedIssues, recentIssues] =
         await Promise.all([
           api.getUser(),
@@ -106,7 +102,14 @@ export const useJiraAuthStore = create<JiraAuthState>((set, get) => ({
           api.getReportedIssues(),
           api.getRecentIssues(),
         ]);
-      set({ user, assignedIssues, inProgressIssues, reportedIssues, recentIssues, isLoading: false });
+      set({
+        user,
+        assignedIssues,
+        inProgressIssues,
+        reportedIssues,
+        recentIssues,
+        isLoading: false,
+      });
     } catch {
       set({ error: 'Failed to fetch Jira data. Check your connection.', isLoading: false });
     }

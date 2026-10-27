@@ -165,7 +165,9 @@ export function EnvironmentForm({ isOpen, onClose, environment }: EnvironmentFor
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button data-testid="env-form-save" onClick={handleSubmit}>{environment ? 'Save Changes' : 'Add Environment'}</Button>
+          <Button data-testid="env-form-save" onClick={handleSubmit}>
+            {environment ? 'Save Changes' : 'Add Environment'}
+          </Button>
         </div>
       </div>
     </Modal>

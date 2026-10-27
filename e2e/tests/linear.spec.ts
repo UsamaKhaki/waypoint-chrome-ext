@@ -39,14 +39,18 @@ test.describe('Linear panel — authenticated', () => {
     await page.reload();
     await page.waitForSelector('[data-testid="main-layout"]');
     await navigateTo(page, 'linear');
-    await expect(page.getByTestId('linear-dashboard')).toContainText(LINEAR_MOCKS.viewer.name, { timeout: 10_000 });
+    await expect(page.getByTestId('linear-dashboard')).toContainText(LINEAR_MOCKS.viewer.name, {
+      timeout: 10_000,
+    });
     // Ensure refresh() data is loaded before any test body runs
     await expect(page.getByTestId('linear-dashboard')).toContainText('ENG-42', { timeout: 10_000 });
   });
 
   test('assigned issues render with identifier and title @P1', async ({ page }) => {
     await expect(page.getByTestId('linear-dashboard')).toContainText('ENG-42');
-    await expect(page.getByTestId('linear-dashboard')).toContainText('Implement keyboard shortcuts');
+    await expect(page.getByTestId('linear-dashboard')).toContainText(
+      'Implement keyboard shortcuts'
+    );
   });
 
   test('team stats render @P1', async ({ page }) => {

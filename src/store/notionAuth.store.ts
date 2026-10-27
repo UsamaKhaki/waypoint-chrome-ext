@@ -63,7 +63,10 @@ export const useNotionAuthStore = create<NotionAuthState>((set, get) => ({
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'unknown';
       set({
-        error: err instanceof Error ? err.message : 'Invalid token. Make sure you copied the full Internal Integration Token.',
+        error:
+          err instanceof Error
+            ? err.message
+            : 'Invalid token. Make sure you copied the full Internal Integration Token.',
         isLoading: false,
       });
       analytics.integrationConnectFailed('notion', reason);
@@ -99,9 +102,21 @@ export const useNotionAuthStore = create<NotionAuthState>((set, get) => ({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch Notion data.';
       // Token was revoked or is invalid — reset to disconnected so user can re-enter token
-      if (message.includes('invalid') || message.includes('401') || message.includes('unauthorized')) {
+      if (
+        message.includes('invalid') ||
+        message.includes('401') ||
+        message.includes('unauthorized')
+      ) {
         await storage.remove(NOTION_TOKEN_KEY);
-        set({ token: null, user: null, recentPages: [], databases: [], isConnected: false, error: message, isLoading: false });
+        set({
+          token: null,
+          user: null,
+          recentPages: [],
+          databases: [],
+          isConnected: false,
+          error: message,
+          isLoading: false,
+        });
       } else {
         set({ error: message, isLoading: false });
       }

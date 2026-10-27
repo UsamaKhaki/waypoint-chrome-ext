@@ -30,8 +30,7 @@ export async function backgroundFetch(url: string, options?: BgFetchOptions): Pr
             return;
           }
           if (!response?.ok) {
-            const apiMessage =
-              (response?.data as { message?: string } | undefined)?.message;
+            const apiMessage = (response?.data as { message?: string } | undefined)?.message;
             const error = new Error(apiMessage ?? response?.error ?? `HTTP ${response?.status}`);
             captureApiError(error, 'background_fetch', { url, status: response?.status });
             reject(error);

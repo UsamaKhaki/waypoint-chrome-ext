@@ -63,13 +63,11 @@ describe('fetchPackageLatest', () => {
   it('falls back to project_url when a PyPI package has no home_page', async () => {
     vi.stubGlobal(
       'fetch',
-      vi
-        .fn()
-        .mockResolvedValue(
-          jsonResponse({
-            info: { version: '2.32.0', home_page: '', project_url: 'https://pypi.org/p/x' },
-          })
-        )
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          info: { version: '2.32.0', home_page: '', project_url: 'https://pypi.org/p/x' },
+        })
+      )
     );
     await expect(fetchPackageLatest('requests', 'pypi')).resolves.toEqual({
       version: '2.32.0',

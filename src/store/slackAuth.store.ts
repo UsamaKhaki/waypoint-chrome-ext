@@ -106,17 +106,18 @@ export const useSlackAuthStore = create<SlackAuthState>((set, get) => ({
       }
 
       const api = new SlackApiService(token);
-      const [authTest, unreadCount] = await Promise.all([
-        api.getAuthTest(),
-        api.getUnreadCount(),
-      ]);
+      const [authTest, unreadCount] = await Promise.all([api.getAuthTest(), api.getUnreadCount()]);
       const authInfo: SlackAuthInfo = {
         userId: authTest.user_id,
         userName: authTest.user,
         teamName: authTest.team,
       };
 
-      await storage.set(SLACK_CACHE_KEY, { authInfo, unreadCount, timestamp: Date.now() } satisfies SlackDashboardCache);
+      await storage.set(SLACK_CACHE_KEY, {
+        authInfo,
+        unreadCount,
+        timestamp: Date.now(),
+      } satisfies SlackDashboardCache);
       set({ authInfo, unreadCount, isLoading: false });
     } catch (err) {
       set({

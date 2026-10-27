@@ -37,6 +37,8 @@ test.describe('Environments panel', () => {
     await page.getByTestId('environment-form').locator('[data-testid="env-form-save"]').click();
 
     await expect(page.getByTestId('environment-form')).not.toBeVisible();
-    await expect(page.locator('[data-testid^="environment-card-"]').filter({ hasText: 'QA' })).toBeVisible();
+    await expect(
+      page.locator('[data-testid^="environment-card-"]').filter({ hasText: 'QA' })
+    ).toBeVisible();
   });
 });

@@ -14,19 +14,21 @@ export async function mockGitHubApi(
 ): Promise<void> {
   const m = { ...GITHUB_MOCKS, ...overrides };
 
-  await page.route('https://api.github.com/user', (route) =>
-    route.fulfill({ json: m.user })
-  );
+  await page.route('https://api.github.com/user', (route) => route.fulfill({ json: m.user }));
   await page.route('https://api.github.com/search/issues*', (route) => {
     const url = route.request().url();
     if (url.includes('review-requested')) {
-      return route.fulfill({ json: { items: m.reviewRequests, total_count: m.reviewRequests.length } });
+      return route.fulfill({
+        json: { items: m.reviewRequests, total_count: m.reviewRequests.length },
+      });
     }
     if (url.includes('is:pr+author')) {
       return route.fulfill({ json: { items: m.myPRs, total_count: m.myPRs.length } });
     }
     if (url.includes('is:issue+assignee')) {
-      return route.fulfill({ json: { items: m.assignedIssues, total_count: m.assignedIssues.length } });
+      return route.fulfill({
+        json: { items: m.assignedIssues, total_count: m.assignedIssues.length },
+      });
     }
     return route.fulfill({ json: { items: [], total_count: 0 } });
   });
@@ -46,11 +48,17 @@ export async function mockGitHubApi(
 async function linearRouteHandler(route: Route, m: typeof LINEAR_MOCKS): Promise<void> {
   const q = route.request().postData() ?? '';
   if (q.includes('assignedIssues') && q.includes('started')) {
-    await route.fulfill({ json: { data: { viewer: { assignedIssues: { nodes: m.inProgressIssues } } } } });
+    await route.fulfill({
+      json: { data: { viewer: { assignedIssues: { nodes: m.inProgressIssues } } } },
+    });
   } else if (q.includes('assignedIssues')) {
-    await route.fulfill({ json: { data: { viewer: { assignedIssues: { nodes: m.assignedIssues } } } } });
+    await route.fulfill({
+      json: { data: { viewer: { assignedIssues: { nodes: m.assignedIssues } } } },
+    });
   } else if (q.includes('createdIssues')) {
-    await route.fulfill({ json: { data: { viewer: { createdIssues: { nodes: m.createdIssues } } } } });
+    await route.fulfill({
+      json: { data: { viewer: { createdIssues: { nodes: m.createdIssues } } } },
+    });
   } else if (q.includes('teams')) {
     // getTeams() computes counts from raw issues.nodes — return raw API shape, not LinearTeam[]
     const rawTeams = m.teams.map((t) => ({
@@ -61,7 +69,9 @@ async function linearRouteHandler(route: Route, m: typeof LINEAR_MOCKS): Promise
         nodes: [
           ...Array(t.inProgressIssues).fill({ state: { type: 'started' } }),
           ...Array(t.completedIssues).fill({ state: { type: 'completed' } }),
-          ...Array(Math.max(0, t.issueCount - t.inProgressIssues - t.completedIssues)).fill({ state: { type: 'backlog' } }),
+          ...Array(Math.max(0, t.issueCount - t.inProgressIssues - t.completedIssues)).fill({
+            state: { type: 'backlog' },
+          }),
         ],
       },
     }));
@@ -173,13 +183,11 @@ export async function mockGoogleCalendarApi(
   await page.route('https://www.googleapis.com/oauth2/v2/userinfo', (route) =>
     route.fulfill({ json: m.userProfile })
   );
-  await page.route(
-    'https://www.googleapis.com/calendar/v3/users/me/calendarList',
-    (route) => route.fulfill({ json: { items: m.calendars } })
+  await page.route('https://www.googleapis.com/calendar/v3/users/me/calendarList', (route) =>
+    route.fulfill({ json: { items: m.calendars } })
   );
-  await page.route(
-    'https://www.googleapis.com/calendar/v3/calendars/primary/events*',
-    (route) => route.fulfill({ json: { items: m.events } })
+  await page.route('https://www.googleapis.com/calendar/v3/calendars/primary/events*', (route) =>
+    route.fulfill({ json: { items: m.events } })
   );
 }
 

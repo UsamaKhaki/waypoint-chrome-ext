@@ -33,16 +33,26 @@ test.describe('Snippets panel', () => {
   test('adding snippet saves to storage and appears in list @P0', async ({ page }) => {
     await page.getByTestId('add-snippet-btn').click();
 
-    await page.getByTestId('snippet-form').locator('[data-testid="snippet-form-title"]').fill('My New Snippet');
-    await page.getByTestId('snippet-form').locator('[data-testid="snippet-form-content"]').fill('echo "hello world"');
+    await page
+      .getByTestId('snippet-form')
+      .locator('[data-testid="snippet-form-title"]')
+      .fill('My New Snippet');
+    await page
+      .getByTestId('snippet-form')
+      .locator('[data-testid="snippet-form-content"]')
+      .fill('echo "hello world"');
     await page.getByTestId('snippet-form').locator('[data-testid="snippet-form-save"]').click();
 
     await expect(page.getByTestId('snippet-form')).not.toBeVisible();
-    await expect(page.locator('[data-testid^="snippet-card-"]').filter({ hasText: 'My New Snippet' })).toBeVisible();
+    await expect(
+      page.locator('[data-testid^="snippet-card-"]').filter({ hasText: 'My New Snippet' })
+    ).toBeVisible();
 
     // Verify storage
     const stored = await getStorage<unknown[]>(page, 'snippets');
-    expect(stored?.some((s: unknown) => (s as { title: string }).title === 'My New Snippet')).toBe(true);
+    expect(stored?.some((s: unknown) => (s as { title: string }).title === 'My New Snippet')).toBe(
+      true
+    );
   });
 
   test('category filter shows only matching snippets @P0', async ({ page }) => {

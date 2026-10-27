@@ -51,10 +51,7 @@ export async function seedSessions(page: Page, sessions: TabSession[]): Promise<
   await setStorage(page, { sessions });
 }
 
-export async function seedGitHubToken(
-  page: Page,
-  token = 'ghp_test_token_12345'
-): Promise<void> {
+export async function seedGitHubToken(page: Page, token = 'ghp_test_token_12345'): Promise<void> {
   await setStorage(page, { githubToken: token });
 }
 
@@ -96,7 +93,15 @@ export async function seedSettings(page: Page, settings: Partial<AppSettings>): 
 
 export async function seedGitHubRepo(
   page: Page,
-  repo = { id: 'repo-1', owner: 'testuser', name: 'waypoint', fullName: 'testuser/waypoint', url: 'https://github.com/testuser/waypoint', isStarred: false, order: 0 }
+  repo = {
+    id: 'repo-1',
+    owner: 'testuser',
+    name: 'waypoint',
+    fullName: 'testuser/waypoint',
+    url: 'https://github.com/testuser/waypoint',
+    isStarred: false,
+    order: 0,
+  }
 ): Promise<void> {
   await setStorage(page, { githubRepos: [repo] });
 }

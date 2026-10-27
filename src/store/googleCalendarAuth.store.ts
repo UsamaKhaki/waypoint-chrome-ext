@@ -64,7 +64,11 @@ export const useGoogleCalendarAuthStore = create<GoogleCalendarAuthState>((set, 
   connect: async () => {
     const identity = getIdentityApi();
     if (!identity) {
-      set({ error: 'chrome.identity is not available. Load the extension via chrome://extensions first.', isLoading: false });
+      set({
+        error:
+          'chrome.identity is not available. Load the extension via chrome://extensions first.',
+        isLoading: false,
+      });
       return;
     }
     set({ isLoading: true, error: null });
@@ -105,7 +109,9 @@ export const useGoogleCalendarAuthStore = create<GoogleCalendarAuthState>((set, 
     const identity = getIdentityApi();
     if (identity) {
       const token = await new Promise<string | null>((resolve) => {
-        identity.getAuthToken({ interactive: false }, (result) => resolve(extractToken(result) ?? null));
+        identity.getAuthToken({ interactive: false }, (result) =>
+          resolve(extractToken(result) ?? null)
+        );
       });
       if (token) {
         identity.removeCachedAuthToken({ token }, () => {});

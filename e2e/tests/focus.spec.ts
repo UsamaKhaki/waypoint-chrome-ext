@@ -24,11 +24,15 @@ test.describe('Daily Focus panel', () => {
     await page.keyboard.press('Enter');
 
     // Click the checkbox button for the new item
-    const item = page.locator('[data-testid^="priority-item-"]').filter({ hasText: 'Finish feature' });
+    const item = page
+      .locator('[data-testid^="priority-item-"]')
+      .filter({ hasText: 'Finish feature' });
     await item.locator('[data-testid^="priority-check-"]').click();
 
     // The text span inside the item should have line-through styling
-    await expect(item.locator('span').filter({ hasText: 'Finish feature' })).toHaveClass(/line-through/);
+    await expect(item.locator('span').filter({ hasText: 'Finish feature' })).toHaveClass(
+      /line-through/
+    );
   });
 
   test('notes textarea persists content on reload @P1', async ({ page }) => {

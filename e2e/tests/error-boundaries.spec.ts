@@ -8,7 +8,11 @@ async function corruptSnippetsState(page: import('@playwright/test').Page) {
     // Find the Zustand snippets store and directly corrupt its in-memory state.
     // We replace the snippets array with one containing a non-object that
     // causes snippet.id / snippet.title access to throw during render.
-    const stores = (window as unknown as { __zustand_stores?: Map<string, { getState: () => unknown; setState: (s: unknown) => void }> }).__zustand_stores;
+    const stores = (
+      window as unknown as {
+        __zustand_stores?: Map<string, { getState: () => unknown; setState: (s: unknown) => void }>;
+      }
+    ).__zustand_stores;
     if (stores) {
       for (const [, store] of stores) {
         const state = store.getState() as Record<string, unknown>;
@@ -65,9 +69,7 @@ test.describe('Error boundaries', () => {
 
     // Fix the storage before clicking retry so the panel can re-render successfully
     await page.evaluate(() => {
-      return new Promise<void>((resolve) =>
-        chrome.storage.local.set({ snippets: [] }, resolve)
-      );
+      return new Promise<void>((resolve) => chrome.storage.local.set({ snippets: [] }, resolve));
     });
 
     await page.getByTestId('error-boundary-retry').click();

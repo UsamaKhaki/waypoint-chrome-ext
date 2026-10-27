@@ -157,7 +157,9 @@ export function OpenPRs({ onNavigate }: OpenPRsProps) {
                   {pr.review_comments > 0 && (
                     <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
                       <MessageCircleWarning className="h-3 w-3" />
-                      {pr.review_comments === 1 ? '1 unresolved' : `${pr.review_comments} unresolved`}
+                      {pr.review_comments === 1
+                        ? '1 unresolved'
+                        : `${pr.review_comments} unresolved`}
                     </span>
                   )}
                 </div>

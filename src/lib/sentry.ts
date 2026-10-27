@@ -31,11 +31,7 @@ export function initSentry(context: 'app' | 'palette' = 'app') {
  * Capture an API/integration error with service-level context.
  * No-op when Sentry is not configured.
  */
-export function captureApiError(
-  error: unknown,
-  service: string,
-  extra?: Record<string, unknown>
-) {
+export function captureApiError(error: unknown, service: string, extra?: Record<string, unknown>) {
   if (!SENTRY_DSN) return;
   Sentry.withScope((scope) => {
     scope.setTag('integration', service);

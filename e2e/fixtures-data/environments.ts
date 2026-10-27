@@ -18,9 +18,7 @@ export const ENVIRONMENT_FIXTURES: Environment[] = [
     id: 'env-staging',
     name: 'Staging',
     type: 'stage',
-    links: [
-      { label: 'App', url: 'https://staging.acme.com', type: 'frontend' },
-    ],
+    links: [{ label: 'App', url: 'https://staging.acme.com', type: 'frontend' }],
     notes: '',
     healthStatus: 'healthy',
     color: '#f59e0b',

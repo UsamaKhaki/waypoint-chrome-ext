@@ -40,7 +40,9 @@ test.describe('Bookmarks panel', () => {
 
     await expect(page.getByTestId('bookmark-form')).not.toBeVisible();
     await expect(page.locator('[data-testid^="bookmark-card-"]')).toHaveCount(1);
-    await expect(page.locator('[data-testid^="bookmark-card-"]').first()).toContainText('Test Bookmark');
+    await expect(page.locator('[data-testid^="bookmark-card-"]').first()).toContainText(
+      'Test Bookmark'
+    );
   });
 
   test('adding bookmark persists to storage @P0', async ({ page }) => {

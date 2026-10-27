@@ -26,7 +26,8 @@ export const SNIPPET_FIXTURES = [
   {
     id: 'snip-3',
     title: 'cURL POST JSON',
-    content: 'curl -X POST -H "Content-Type: application/json" -d \'{"key":"value"}\' https://api.example.com/endpoint',
+    content:
+      'curl -X POST -H "Content-Type: application/json" -d \'{"key":"value"}\' https://api.example.com/endpoint',
     category: 'api',
     description: 'POST request with JSON body',
     tags: ['curl', 'api', 'http'],

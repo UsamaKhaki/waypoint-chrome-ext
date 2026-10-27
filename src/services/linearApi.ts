@@ -141,7 +141,16 @@ export class LinearApiService {
   }
 
   async getTeams(): Promise<LinearTeam[]> {
-    const data = await this.query<{ teams: { nodes: { id: string; name: string; key: string; issues: { nodes: { state: { type: string } }[] } }[] } }>(`
+    const data = await this.query<{
+      teams: {
+        nodes: {
+          id: string;
+          name: string;
+          key: string;
+          issues: { nodes: { state: { type: string } }[] };
+        }[];
+      };
+    }>(`
       query {
         teams(first: 10) {
           nodes {
