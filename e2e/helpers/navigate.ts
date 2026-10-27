@@ -8,6 +8,16 @@ export async function navigateTo(page: Page, section: string): Promise<void> {
   await page.click(`[data-testid="nav-item-${section}"]`);
 }
 
+/**
+ * Open a connector that isn't connected yet. The sidebar only lists connected
+ * connectors, so go through Settings → Connectors → Connect like a user would.
+ */
+export async function openConnectorSetup(page: Page, connector: string): Promise<void> {
+  await navigateTo(page, 'settings');
+  await page.click('[data-testid="settings-section-connectors"]');
+  await page.click(`[data-testid="connect-${connector}"]`);
+}
+
 /** Press Cmd/Ctrl + a number key to switch sections via keyboard shortcut */
 export async function pressShortcut(page: Page, key: string): Promise<void> {
   await page.keyboard.press(`${modifier}+${key}`);

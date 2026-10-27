@@ -1,5 +1,3 @@
-import type { SlackUser, SlackChannel } from '../../src/services/slackApi';
-
 export const SLACK_MOCKS = {
   authTest: {
     user_id: 'U123456',
@@ -7,17 +5,7 @@ export const SLACK_MOCKS = {
     team: 'Acme Team',
   },
 
-  user: {
-    id: 'U123456',
-    name: 'testuser',
-    real_name: 'Test User',
-    profile: {
-      display_name: 'testuser',
-      image_48: 'https://example.com/slack-avatar.png',
-      email: 'test@acme.com',
-    },
-  } satisfies SlackUser,
-
+  // users.conversations response; the dashboard shows the summed unread_count.
   channels: [
     {
       id: 'C001',
@@ -36,5 +24,5 @@ export const SLACK_MOCKS = {
       unread_count: 2,
       latest: { text: 'Hey, can you review PR #42?', ts: '1705000100.000001' },
     },
-  ] satisfies SlackChannel[],
+  ],
 };

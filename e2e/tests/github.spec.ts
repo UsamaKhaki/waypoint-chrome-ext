@@ -1,24 +1,24 @@
 import { test, expect } from '../fixtures/index';
 import { seedGitHubToken, seedGitHubRepo, getStorage } from '../helpers/storage';
-import { navigateTo } from '../helpers/navigate';
+import { navigateTo, openConnectorSetup } from '../helpers/navigate';
 import { mockGitHubApi, mockGitHubApiError } from '../helpers/api-mocks';
 import { GITHUB_MOCKS } from '../fixtures-data/github';
 
 test.describe('GitHub panel — unauthenticated', () => {
   test('shows connect screen when no token in storage @P0', async ({ page }) => {
-    await navigateTo(page, 'github');
+    await openConnectorSetup(page, 'github');
     await expect(page.getByTestId('github-connect')).toBeVisible();
     await expect(page.getByTestId('github-dashboard')).not.toBeVisible();
   });
 
   test('connect button is disabled when token input is empty @P0', async ({ page }) => {
-    await navigateTo(page, 'github');
+    await openConnectorSetup(page, 'github');
     await expect(page.getByTestId('github-connect-btn')).toBeDisabled();
   });
 
   test('submitting invalid token shows error message @P0', async ({ page }) => {
     await mockGitHubApiError(page, 401);
-    await navigateTo(page, 'github');
+    await openConnectorSetup(page, 'github');
 
     await page.getByTestId('github-token-input').fill('invalid_token_xyz');
     await page.getByTestId('github-connect-btn').click();
@@ -29,7 +29,7 @@ test.describe('GitHub panel — unauthenticated', () => {
 
   test('submitting valid token shows GitHub dashboard @P0', async ({ page }) => {
     await mockGitHubApi(page);
-    await navigateTo(page, 'github');
+    await openConnectorSetup(page, 'github');
 
     await page.getByTestId('github-token-input').fill('ghp_valid_test_token');
     await page.getByTestId('github-connect-btn').click();
@@ -70,7 +70,7 @@ test.describe('GitHub panel — authenticated', () => {
     expect(token).toBeNull();
 
     // Navigating back to github should show connect screen
-    await navigateTo(page, 'github');
+    await openConnectorSetup(page, 'github');
     await expect(page.getByTestId('github-connect')).toBeVisible();
   });
 });

@@ -1,18 +1,18 @@
 import { test, expect } from '../fixtures/index';
 import { seedLinearApiKey, getStorage } from '../helpers/storage';
-import { navigateTo } from '../helpers/navigate';
+import { navigateTo, openConnectorSetup } from '../helpers/navigate';
 import { mockLinearApi, mockLinearApiError } from '../helpers/api-mocks';
 import { LINEAR_MOCKS } from '../fixtures-data/linear';
 
 test.describe('Linear panel — unauthenticated', () => {
   test('shows connect screen when no API key in storage @P1', async ({ page }) => {
-    await navigateTo(page, 'linear');
+    await openConnectorSetup(page, 'linear');
     await expect(page.getByTestId('linear-connect')).toBeVisible();
   });
 
   test('submitting invalid key shows error message @P1', async ({ page }) => {
     await mockLinearApiError(page, 401);
-    await navigateTo(page, 'linear');
+    await openConnectorSetup(page, 'linear');
 
     await page.getByTestId('linear-input').fill('lin_invalid_key');
     await page.getByTestId('linear-connect-btn').click();
@@ -22,7 +22,7 @@ test.describe('Linear panel — unauthenticated', () => {
 
   test('valid key shows Linear dashboard with user name @P1', async ({ page }) => {
     await mockLinearApi(page);
-    await navigateTo(page, 'linear');
+    await openConnectorSetup(page, 'linear');
 
     await page.getByTestId('linear-input').fill('lin_api_valid_key_xyz');
     await page.getByTestId('linear-connect-btn').click();
@@ -65,7 +65,7 @@ test.describe('Linear panel — authenticated', () => {
     const key = await getStorage<string>(page, 'linearApiKey');
     expect(key).toBeNull();
 
-    await navigateTo(page, 'linear');
+    await openConnectorSetup(page, 'linear');
     await expect(page.getByTestId('linear-connect')).toBeVisible();
   });
 });

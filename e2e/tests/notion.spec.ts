@@ -1,12 +1,12 @@
 import { test, expect } from '../fixtures/index';
 import { seedNotionToken, getStorage } from '../helpers/storage';
-import { navigateTo } from '../helpers/navigate';
+import { navigateTo, openConnectorSetup } from '../helpers/navigate';
 import { mockNotionApi } from '../helpers/api-mocks';
 import { NOTION_MOCKS } from '../fixtures-data/notion';
 
 test.describe('Notion panel — unauthenticated', () => {
   test('shows connect screen when no token in storage @P1', async ({ page }) => {
-    await navigateTo(page, 'notion');
+    await openConnectorSetup(page, 'notion');
     await expect(page.getByTestId('notion-connect')).toBeVisible();
   });
 });
@@ -39,7 +39,9 @@ test.describe('Notion panel — authenticated', () => {
     const token = await getStorage(page, 'notionToken');
     expect(token).toBeNull();
 
-    await navigateTo(page, 'notion');
+    // Disconnected connectors drop out of the sidebar; reconnect via Settings.
+    await expect(page.getByTestId('nav-item-notion')).toHaveCount(0);
+    await openConnectorSetup(page, 'notion');
     await expect(page.getByTestId('notion-connect')).toBeVisible();
   });
 });

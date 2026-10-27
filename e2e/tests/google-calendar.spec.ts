@@ -1,12 +1,12 @@
 import { test, expect } from '../fixtures/index';
 import { seedGoogleCalendarConnected, getStorage, setStorage } from '../helpers/storage';
-import { navigateTo } from '../helpers/navigate';
+import { navigateTo, openConnectorSetup } from '../helpers/navigate';
 import { mockGoogleCalendarApi } from '../helpers/api-mocks';
 import { GCAL_MOCKS } from '../fixtures-data/google-calendar';
 
 test.describe('Google Calendar panel — unauthenticated', () => {
   test('shows connect screen when googleCalendarConnected is false @P1', async ({ page }) => {
-    await navigateTo(page, 'google-calendar');
+    await openConnectorSetup(page, 'google-calendar');
     await expect(page.getByTestId('google-calendar-connect')).toBeVisible();
   });
 });
@@ -76,10 +76,10 @@ test.describe('Google Calendar panel — authenticated', () => {
     await page.getByTestId('settings-section-connectors').click();
     await page.getByTestId('disconnect-google-calendar').click();
 
-    const connected = await getStorage(page, 'googleCalendarConnected');
-    expect(connected).toBeNull();
+    // disconnect() revokes the OAuth token before clearing the flag, so poll.
+    await expect.poll(() => getStorage(page, 'googleCalendarConnected')).toBeNull();
 
-    await navigateTo(page, 'google-calendar');
+    await openConnectorSetup(page, 'google-calendar');
     await expect(page.getByTestId('google-calendar-connect')).toBeVisible();
   });
 });

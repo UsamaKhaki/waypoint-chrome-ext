@@ -91,38 +91,37 @@ export async function mockLinearApi(
   await page.route('https://api.linear.app/graphql', (route) => linearRouteHandler(route, m));
 }
 
-// ── Jira (direct fetch from extension page) ───────────────────────────────
+// ── Jira (backgroundFetch → service worker → fetch) ──────────────────────
+// Like Notion, these requests come from the service worker, so they are only
+// visible to context-level routes.
 
 export async function mockJiraApi(
-  page: Page,
+  context: BrowserContext,
   domain = 'acme',
   overrides: Partial<typeof JIRA_MOCKS> = {}
 ): Promise<void> {
   const m = { ...JIRA_MOCKS, ...overrides };
 
-  await page.route(`https://${domain}.atlassian.net/rest/api/3/myself`, (route) =>
+  await context.route(`https://${domain}.atlassian.net/rest/api/3/myself`, (route) =>
     route.fulfill({ json: m.user })
   );
-  await page.route(`https://${domain}.atlassian.net/rest/api/3/search*`, (route) =>
+  await context.route(`https://${domain}.atlassian.net/rest/api/3/search*`, (route) =>
     route.fulfill({ json: { issues: m.issues, total: m.issues.length } })
   );
 }
 
-// ── Slack (direct POST fetch) ─────────────────────────────────────────────
+// ── Slack (backgroundFetch → service worker → fetch) ─────────────────────
 
 export async function mockSlackApi(
-  page: Page,
+  context: BrowserContext,
   overrides: Partial<typeof SLACK_MOCKS> = {}
 ): Promise<void> {
   const m = { ...SLACK_MOCKS, ...overrides };
 
-  await page.route('https://slack.com/api/auth.test', (route) =>
+  await context.route('https://slack.com/api/auth.test', (route) =>
     route.fulfill({ json: { ok: true, ...m.authTest } })
   );
-  await page.route('https://slack.com/api/users.info*', (route) =>
-    route.fulfill({ json: { ok: true, user: m.user } })
-  );
-  await page.route('https://slack.com/api/conversations.list*', (route) =>
+  await context.route('https://slack.com/api/users.conversations', (route) =>
     route.fulfill({ json: { ok: true, channels: m.channels } })
   );
 }

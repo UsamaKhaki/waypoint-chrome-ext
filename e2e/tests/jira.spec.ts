@@ -1,19 +1,19 @@
 import { test, expect } from '../fixtures/index';
 import { seedJiraCredentials, getStorage } from '../helpers/storage';
-import { navigateTo } from '../helpers/navigate';
+import { navigateTo, openConnectorSetup } from '../helpers/navigate';
 import { mockJiraApi } from '../helpers/api-mocks';
 import { JIRA_MOCKS } from '../fixtures-data/jira';
 
 test.describe('Jira panel — unauthenticated', () => {
   test('shows connect screen when no credentials in storage @P1', async ({ page }) => {
-    await navigateTo(page, 'jira');
+    await openConnectorSetup(page, 'jira');
     await expect(page.getByTestId('jira-connect')).toBeVisible();
   });
 });
 
 test.describe('Jira panel — authenticated', () => {
-  test.beforeEach(async ({ page }) => {
-    await mockJiraApi(page);
+  test.beforeEach(async ({ page, chromeContext }) => {
+    await mockJiraApi(chromeContext);
     await seedJiraCredentials(page);
     await page.reload();
     await page.waitForSelector('[data-testid="main-layout"]');
@@ -38,7 +38,7 @@ test.describe('Jira panel — authenticated', () => {
     const creds = await getStorage(page, 'jiraCredentials');
     expect(creds).toBeNull();
 
-    await navigateTo(page, 'jira');
+    await openConnectorSetup(page, 'jira');
     await expect(page.getByTestId('jira-connect')).toBeVisible();
   });
 });
