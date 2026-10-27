@@ -244,7 +244,7 @@ export default function App() {
       case 'radar':
         return wrap('radar', <RadarPanel />);
       case 'settings':
-        return wrap('settings', <SettingsPanel />);
+        return wrap('settings', <SettingsPanel onNavigate={handleNavigate} />);
       default:
         return null;
     }

@@ -902,7 +902,12 @@ function ConnectorCard({
           </>
         )}
         {connector.status === 'not_connected' && (
-          <Button size="sm" variant="outline" onClick={onConnect}>
+          <Button
+            data-testid={`connect-${connector.id}`}
+            size="sm"
+            variant="outline"
+            onClick={onConnect}
+          >
             Connect
           </Button>
         )}
@@ -916,21 +921,7 @@ function ConnectorCard({
   );
 }
 
-function ConnectorsSection({
-  onNavigateToGitHub,
-  onNavigateToLinear,
-  onNavigateToJira,
-  onNavigateToSlack,
-  onNavigateToNotion,
-  onNavigateToCalendar,
-}: {
-  onNavigateToGitHub: () => void;
-  onNavigateToLinear: () => void;
-  onNavigateToJira: () => void;
-  onNavigateToSlack: () => void;
-  onNavigateToNotion: () => void;
-  onNavigateToCalendar: () => void;
-}) {
+function ConnectorsSection({ onNavigate }: { onNavigate: (section: string) => void }) {
   const githubConnected = useGitHubAuthStore((s) => s.isConnected);
   const githubUser = useGitHubAuthStore((s) => s.user);
   const githubDisconnect = useGitHubAuthStore((s) => s.disconnect);
@@ -1013,15 +1004,6 @@ function ConnectorsSection({
     },
   ];
 
-  const onConnectMap: Record<string, (() => void) | undefined> = {
-    github: onNavigateToGitHub,
-    linear: onNavigateToLinear,
-    jira: onNavigateToJira,
-    slack: onNavigateToSlack,
-    notion: onNavigateToNotion,
-    'google-calendar': onNavigateToCalendar,
-  };
-
   const onDisconnectMap: Record<string, (() => void) | undefined> = {
     github: githubDisconnect,
     linear: linearDisconnect,
@@ -1049,7 +1031,8 @@ function ConnectorsSection({
               <ConnectorCard
                 key={c.id}
                 connector={c}
-                onConnect={onConnectMap[c.id]}
+                // Connector ids double as section ids; each panel hosts its own connect flow.
+                onConnect={() => onNavigate(c.id)}
                 onDisconnect={onDisconnectMap[c.id]}
               />
             ))}
@@ -1087,7 +1070,7 @@ function ConnectorsSection({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function SettingsPanel() {
+export function SettingsPanel({ onNavigate }: { onNavigate: (section: string) => void }) {
   const [activeSection, setActiveSection] = useState<SectionId>('subscription');
   const [showBugReport, setShowBugReport] = useState(false);
   const plan = useSubscriptionStore((s) => s.plan);
@@ -1104,16 +1087,7 @@ export function SettingsPanel() {
       case 'notifications':
         return <NotificationsSection />;
       case 'connectors':
-        return (
-          <ConnectorsSection
-            onNavigateToGitHub={() => {}}
-            onNavigateToLinear={() => {}}
-            onNavigateToJira={() => {}}
-            onNavigateToSlack={() => {}}
-            onNavigateToNotion={() => {}}
-            onNavigateToCalendar={() => {}}
-          />
-        );
+        return <ConnectorsSection onNavigate={onNavigate} />;
       case 'data':
         return <DataSection />;
       case 'about':
