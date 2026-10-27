@@ -63,7 +63,8 @@ export async function migrateEnvironmentsToBookmarks(): Promise<MigrationResult>
         imported += 1;
       } catch {
         // Skip individual failures so a single bad link doesn't abort the
-        // whole migration — the user can retry next boot if the flag isn't set.
+        // whole migration. The flag is still set afterwards, so skipped links
+        // are not retried; the original data stays under `environments`.
       }
     }
   }
